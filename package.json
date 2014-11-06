@@ -43,7 +43,7 @@
   "repository": "https://github.com/cjwoodward/rel",
   "dependencies": {
     "coffee-script": "^1.7.1",
-    "date-utils": "0.1.8",
+    "date-utils": "^1.2.16",
     "underscore": "1.1.6"
   },
   "engines": {
