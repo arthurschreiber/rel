@@ -1,5 +1,4 @@
-vows = require 'vows'
-assert = require 'assert'
+assert = require('chai').assert
 
 SelectManager = require '../lib/select-manager'
 Table = require '../lib/table'
@@ -7,64 +6,68 @@ SqlLiteral = require('../lib/nodes/sql-literal')
 Rel = require('../rel')
 Nodes = require '../lib/nodes/nodes'
 
-tests = vows.describe('Querying stuff').addBatch
-  'A select manager':
-    'projects':
-      'accepts sql literals': (selectManager) ->
+describe 'Querying stuff', ->
+  describe 'A select manager', ->
+    describe 'projects', ->
+      it 'accepts sql literals', ->
         selectManager = new SelectManager(new Table('users'))
         selectManager.project Rel.sql('id')
         assert.equal selectManager.toSql(), "SELECT id FROM \"users\""
-      'accepts string constants': (selectManager) ->
+      it 'accepts string constants', ->
         selectManager = new SelectManager(new Table('users'))
         selectManager.project 'foo'
         assert.equal selectManager.toSql(), "SELECT 'foo' FROM \"users\""
 
-    'order':
-      topic: ->
-        new SelectManager(new Table('users'))
-      'accepts strings': (selectManager) ->
-        selectManager.project new SqlLiteral('*')
-        selectManager.order 'foo'
-        assert.equal selectManager.toSql(), "SELECT * FROM \"users\" ORDER BY foo"
+    describe 'order', ->
+      beforeEach ->
+        @selectManager = new SelectManager(new Table('users'))
 
+      it 'accepts strings', ->
+        @selectManager.project new SqlLiteral('*')
+        @selectManager.order 'foo'
+        assert.equal @selectManager.toSql(), "SELECT * FROM \"users\" ORDER BY foo"
 
-    'group':
-      topic: ->
-        new SelectManager(new Table('users'))
-      'accepts strings': (selectManager) ->
-        selectManager.project new SqlLiteral('*')
-        selectManager.group 'foo'
-        assert.equal selectManager.toSql(), "SELECT * FROM \"users\" GROUP BY foo"
+    describe 'group', ->
+      beforeEach ->
+        @selectManager = new SelectManager(new Table('users'))
 
-    'as':
-      topic: ->
-        new SelectManager(new Table('users'))
-      'makes an AS node by grouping the AST': (selectManager) ->
-        as = selectManager.as Rel.sql('foo')
+      it 'accepts strings', ->
+        @selectManager.project new SqlLiteral('*')
+        @selectManager.group 'foo'
+        assert.equal @selectManager.toSql(), "SELECT * FROM \"users\" GROUP BY foo"
+
+    describe 'as', ->
+      beforeEach ->
+        @selectManager = new SelectManager(new Table('users'))
+
+      it 'makes an AS node by grouping the AST', ->
+        as = @selectManager.as Rel.sql('foo')
         assert.equal 'Grouping', as.left.constructor.name
-        assert.equal selectManager.ast, as.left.expr
+        assert.equal @selectManager.ast, as.left.expr
         assert.equal 'foo', as.right.toString()
-      'it converts right to SqlLiteral if string': ->
-        manager = new SelectManager(new Table('users'))
-        as = manager.as 'foo'
+
+      it 'converts right to SqlLiteral if string', ->
+        as = @selectManager.as 'foo'
         assert.equal as.right.constructor.name, 'SqlLiteral'
-      'it renders to correct AS SQL': ->
+
+      it 'renders to correct AS SQL', ->
         sub = Rel.select().project(1)
         outer = Rel.select().from(sub.as('x')).project(Rel.star())
         assert.equal outer.toSql(), 'SELECT * FROM (SELECT 1) "x"'
 
-    'As':
-      'supports SqlLiteral': ->
+    describe 'As', ->
+      it 'supports SqlLiteral', ->
         select = Rel.select()
           .project(new Nodes.As(1, new Nodes.SqlLiteral('x')))
         assert.equal select.toSql(), 'SELECT 1 AS x'
-      'supports UnqualifiedName': ->
+
+      it 'supports UnqualifiedName', ->
         select = Rel.select()
           .project(new Nodes.As(1, new Nodes.UnqualifiedName('x')))
         assert.equal select.toSql(), 'SELECT 1 AS "x"'
 
-    'from':
-      'ignores string when table of same name exists': ->
+    describe 'from', ->
+      it 'ignores string when table of same name exists', ->
         table = new Table('users')
         manager = new SelectManager(table)
 
@@ -72,20 +75,22 @@ tests = vows.describe('Querying stuff').addBatch
         manager.from 'users'
         manager.project table.attribute('id')
         assert.equal manager.toSql(), 'SELECT "users"."id" FROM users'
-      'can have multiple items together': ->
+
+      it 'can have multiple items together', ->
         table = new Table('users')
         manager = table.from table
         manager.having 'foo', 'bar'
         assert.equal manager.toSql(), 'SELECT FROM "users" HAVING foo AND bar'
 
-    'on':
-      'converts to sql literals': ->
+    describe 'on', ->
+      it 'converts to sql literals', ->
         table = new Table('users')
         right = table.alias()
         manager = table.from table
         manager.join(right).on('omg')
         assert.equal manager.toSql(), 'SELECT FROM "users" INNER JOIN "users" "users_2" ON omg'
-      'converts to sql literals': ->
+
+      it 'converts to sql literals', ->
         table = new Table('users')
         right = table.alias()
         manager = table.from table
@@ -94,7 +99,7 @@ tests = vows.describe('Querying stuff').addBatch
 
     # TODO Clone not implemented
     # 'clone':
-    #   'creates new cores': ->
+    #   'creates new cores', ->
     #     table = new Table('users')
     #     table.as 'foo'
     #     mgr = table.from table
@@ -104,31 +109,31 @@ tests = vows.describe('Querying stuff').addBatch
 
     # TODO Test initialize
 
-    'skip':
-      'should add an offest': ->
+    describe 'skip', ->
+      it 'should add an offest', ->
         table = new Table 'users'
         mgr = table.from table
         mgr.skip 10
         assert.equal mgr.toSql(), 'SELECT FROM "users" OFFSET 10'
-      'should chain': ->
+      it 'should chain', ->
         table = new Table 'users'
         mgr = table.from table
         assert.equal mgr.skip(10).toSql(), 'SELECT FROM "users" OFFSET 10'
-      'should handle removing a skip': ->
+      it 'should handle removing a skip', ->
         table = new Table 'users'
         mgr = table.from table
         assert.equal mgr.skip(10).toSql(), 'SELECT FROM "users" OFFSET 10'
         assert.equal mgr.skip(null).toSql(), 'SELECT FROM "users"'
 
-    'exists':
-      'should create an exists clause': ->
+    describe 'exists', ->
+      it 'should create an exists clause', ->
         table = new Table 'users'
         mgr = new SelectManager table
         mgr.project(new SqlLiteral('*'))
         m2 = new SelectManager
         m2.project mgr.exists()
         assert.equal m2.toSql(), "SELECT EXISTS (#{mgr.toSql()})"
-      'can be aliased': ->
+      it 'can be aliased', ->
         table = new Table 'users'
         mgr = new SelectManager table
         mgr.project(new SqlLiteral('*'))
@@ -136,8 +141,8 @@ tests = vows.describe('Querying stuff').addBatch
         m2.project mgr.exists().as('foo')
         assert.equal m2.toSql(), "SELECT EXISTS (#{mgr.toSql()}) AS \"foo\""
 
-    'union':
-      topic: ->
+    describe 'union', ->
+      beforeEach ->
         table = new Table 'users'
         m1 = new SelectManager table
         m1.project Rel.star()
@@ -147,22 +152,24 @@ tests = vows.describe('Querying stuff').addBatch
         m2.project Rel.star()
         m2.where(table.column('age').gt(99))
 
-        [m1, m2]
+        @topics = [m1, m2]
 
-      'should union two managers': (topics) ->
-        m1 = topics[0] 
-        m2 = topics[1]
+      it 'should union two managers', ->
+        m1 = @topics[0] 
+        m2 = @topics[1]
         node = m1.union m2
         assert.equal node.toSql(), 
           '(SELECT * FROM "users" WHERE "users"."age" < 18) UNION (SELECT * FROM "users" WHERE "users"."age" > 99)'
-      'should union two managers': (topics) ->
-        m1 = topics[0] 
-        m2 = topics[1]
+
+      it 'should union two managers', ->
+        m1 = @topics[0] 
+        m2 = @topics[1]
         node = m1.union 'all', m2
         assert.equal node.toSql(), 
           '(SELECT * FROM "users" WHERE "users"."age" < 18) UNION ALL (SELECT * FROM "users" WHERE "users"."age" > 99)'
-    'except':
-      topic: ->
+
+    describe 'except', ->
+      beforeEach ->
         table = new Table 'users'
         m1 = new SelectManager table
         m1.project Rel.star()
@@ -172,16 +179,17 @@ tests = vows.describe('Querying stuff').addBatch
         m2.project Rel.star()
         m2.where(table.column('age').in(Rel.range(40,99)))
 
-        [m1, m2]
+        @topics = [m1, m2]
 
-      'should except two managers': (topics) ->
-        m1 = topics[0] 
-        m2 = topics[1]
+      it 'should except two managers', ->
+        m1 = @topics[0] 
+        m2 = @topics[1]
         node = m1.except m2
         assert.equal node.toSql(), 
           '(SELECT * FROM "users" WHERE "users"."age" BETWEEN (18 AND 60)) EXCEPT (SELECT * FROM "users" WHERE "users"."age" BETWEEN (40 AND 99))'
-    'intersect':
-      topic: ->
+
+    describe 'intersect', ->
+      beforeEach ->
         table = new Table 'users'
         m1 = new SelectManager table
         m1.project Rel.star()
@@ -191,18 +199,18 @@ tests = vows.describe('Querying stuff').addBatch
         m2.project Rel.star()
         m2.where(table.column('age').lt(99))
 
-        [m1, m2]
+        @topics = [m1, m2]
 
-      'should intersect two managers': (topics) ->
-        m1 = topics[0] 
-        m2 = topics[1]
+      it 'should intersect two managers', ->
+        m1 = @topics[0] 
+        m2 = @topics[1]
         node = m1.intersect m2
 
         assert.equal node.toSql(),
           '(SELECT * FROM "users" WHERE "users"."age" > 18) INTERSECT (SELECT * FROM "users" WHERE "users"."age" < 99)'
 
-    'with':
-      'should support WITH RECURSIVE': ->
+    describe 'with', ->
+      it 'should support WITH RECURSIVE', ->
         comments = new Table 'comments'
         commentsId = comments.column 'id'
         commentsParentId = comments.column 'parent_id'
@@ -226,35 +234,35 @@ tests = vows.describe('Querying stuff').addBatch
         string = 'WITH RECURSIVE "replies" AS ((SELECT "comments"."id", "comments"."parent_id" FROM "comments" WHERE "comments"."id" = 42) UNION (SELECT "comments"."id", "comments"."parent_id" FROM "comments" INNER JOIN "replies" ON "comments"."parent_id" = "replies"."id")) SELECT * FROM "replies"'
         assert.equal manager.toSql(), string
 
-    'ast':
-      'it should return the ast': ->
+    describe 'ast', ->
+      it 'it should return the ast', ->
         table = new Table 'users'
         mgr = table.from table
         ast = mgr.ast
         assert.equal mgr.visitor.accept(ast), mgr.toSql()
 
-    'taken':
-      'should return limit': ->
+    describe 'taken', ->
+      it 'should return limit', ->
         manager = new SelectManager()
         manager.take(10)
         assert.equal manager.taken(), 10
 
-    'lock':
-      'adds a lock': ->
+    describe 'lock', ->
+      it 'adds a lock', ->
         table = new Table 'users'
         mgr = table.from table
         assert.equal mgr.lock().toSql(), 'SELECT FROM "users"'
 
-    'orders':
-      'returns order clauses': ->
+    describe 'orders', ->
+      it 'returns order clauses', ->
         table = new Table 'users'
         manager = new SelectManager
         order = table.column 'id'
         manager.order table.column('id')
         assert.equal manager.orders()[0].name, order.name
 
-    'order':
-      'generates order clauses': ->
+    describe 'order', ->
+      it 'generates order clauses', ->
         table = new Table 'users'
         manager = new SelectManager()
         manager.project Rel.star()
@@ -262,7 +270,7 @@ tests = vows.describe('Querying stuff').addBatch
         manager.order table.column('id')
         assert.equal manager.toSql(), 'SELECT * FROM "users" ORDER BY "users"."id"'
 
-      'it takes args...': ->
+      it 'it takes args...', ->
         table = new Table 'users'
         manager = new SelectManager()
         manager.project Rel.star()
@@ -270,12 +278,12 @@ tests = vows.describe('Querying stuff').addBatch
         manager.order table.column('id'), table.column('name')
         assert.equal manager.toSql(), 'SELECT * FROM "users" ORDER BY "users"."id", "users"."name"'
 
-      'chains': ->
+      it 'chains', ->
         table = new Table 'users'
         manager = new SelectManager()
         assert.equal manager.order(table.column('id')), manager
 
-      'supports asc/desc': ->
+      it 'supports asc/desc', ->
         table = new Table 'users'
         manager = new SelectManager()
         manager.project Rel.star()
@@ -284,8 +292,8 @@ tests = vows.describe('Querying stuff').addBatch
         assert.equal manager.toSql(),
           'SELECT * FROM "users" ORDER BY "users"."id" ASC, "users"."name" DESC'
 
-    'on':
-      'takes two params': ->
+    describe 'on', ->
+      it 'takes two params', ->
         left = new Table 'users'
         right = left.alias()
         predicate = left.column('id').eq(right.column('id'))
@@ -296,7 +304,7 @@ tests = vows.describe('Querying stuff').addBatch
         assert.equal manager.toSql(), 
           'SELECT FROM "users" INNER JOIN "users" "users_2" ON "users"."id" = "users_2"."id" AND "users"."id" = "users_2"."id"'
 
-      'takes two params': ->
+      it 'takes two params', ->
         left = new Table 'users'
         right = left.alias()
         predicate = left.column('id').eq(right.column('id'))
@@ -307,27 +315,27 @@ tests = vows.describe('Querying stuff').addBatch
         assert.equal manager.toSql(), 
           'SELECT FROM "users" INNER JOIN "users" "users_2" ON "users"."id" = "users_2"."id" AND "users"."id" = "users_2"."id" AND "users"."name" = "users_2"."name"'
 
-    'froms':
-      'it should hand back froms': ->
+    describe 'froms', ->
+      it 'it should hand back froms', ->
         relation = new SelectManager()
         assert.equal [].length, relation.froms().length
 
-    'nodes':
-      'it should create AND nodes': ->
+    describe 'nodes', ->
+      it 'it should create AND nodes', ->
         relation = new SelectManager()
         children = ['foo', 'bar', 'baz']
         clause = relation.createAnd children
         assert.equal clause.constructor, Nodes.And
         assert.equal clause.children, children
 
-      'it should create JOIN nodes': ->
+      it 'it should create JOIN nodes', ->
         relation = new SelectManager()
         join = relation.createJoin 'foo', 'bar'
         assert.equal join.constructor, Nodes.InnerJoin
         assert.equal 'foo', join.left
         assert.equal 'bar', join.right
 
-      'it should create JOIN nodes with a class': ->
+      it 'it should create JOIN nodes with a class', ->
         relation = new SelectManager()
         join = relation.createJoin 'foo', 'bar', Nodes.LeftOuterJoin
         assert.equal join.constructor, Nodes.LeftOuterJoin
@@ -336,8 +344,8 @@ tests = vows.describe('Querying stuff').addBatch
 
     # TODO put in insert manager, see ruby tests.
 
-    'join':
-      'responds to join': ->
+    describe 'join', ->
+      it 'responds to join', ->
         left = new Table 'users'
         right = left.alias()
         predicate = left.column('id').eq(right.column('id'))
@@ -347,7 +355,7 @@ tests = vows.describe('Querying stuff').addBatch
         manager.join(right).on(predicate)
         assert.equal manager.toSql(), 'SELECT FROM "users" INNER JOIN "users" "users_2" ON "users"."id" = "users_2"."id"'
 
-      'it takes a class': ->
+      it 'it takes a class', ->
         left = new Table 'users'
         right = left.alias()
         predicate = left.column('id').eq(right.column('id'))
@@ -357,64 +365,64 @@ tests = vows.describe('Querying stuff').addBatch
         manager.join(right, Nodes.LeftOuterJoin).on(predicate)
         assert.equal manager.toSql(), 'SELECT FROM "users" LEFT OUTER JOIN "users" "users_2" ON "users"."id" = "users_2"."id"'
 
-      'it noops on null': ->
+      it 'it noops on null', ->
         manager = new SelectManager()
         assert.equal manager.join(null), manager
 
-    'joins':
-      'returns join sql': ->
+    describe 'joins', ->
+      it 'returns join sql', ->
         table = new Table 'users'
         alias = table.alias()
         manager = new SelectManager()
         manager.from(new Nodes.InnerJoin(alias, table.column('id').eq(alias.column('id'))))
         assert.equal manager.joinSql().toString(), 'INNER JOIN "users" "users_2" "users"."id" = "users_2"."id"'
 
-      'returns outer join sql': ->
+      it 'returns outer join sql', ->
         table = new Table 'users'
         alias = table.alias()
         manager = new SelectManager()
         manager.from(new Nodes.LeftOuterJoin(alias, table.column('id').eq(alias.column('id'))))
         assert.equal manager.joinSql().toString(), 'LEFT OUTER JOIN "users" "users_2" "users"."id" = "users_2"."id"'
 
-      'return string join sql': ->
+      it 'return string join sql', ->
         table = new Table 'users'
         manager = new SelectManager()
         manager.from new Nodes.StringJoin('hello')
         assert.equal manager.joinSql().toString(), "'hello'" # TODO not sure if this should get quoted. It isn't in ruby tests.
 
-      'returns nil join sql': ->
+      it 'returns nil join sql', ->
         manager = new SelectManager()
         assert.isNull manager.joinSql()
 
-    'order clauses':
-      'returns order clauses as a list': ->
+    describe 'order clauses', ->
+      it 'returns order clauses as a list', ->
         table = new Table('users')
         manager = new SelectManager()
         manager.from table
         manager.order table.column('id')
         assert.equal manager.orderClauses()[0], '"users"."id"'
 
-    'group':
-      'takes an attribute': ->
+    describe 'group', ->
+      it 'takes an attribute', ->
         table = new Table 'users'
         manager = new SelectManager()
         manager.from table
         manager.group table.column('id')
         assert.equal manager.toSql(), 'SELECT FROM "users" GROUP BY "users"."id"'
 
-      'chaining': ->
+      it 'chaining', ->
         table = new Table 'users'
         manager = new SelectManager()
         assert.equal manager.group(table.column('id')).constructor.name, manager.constructor.name
 
-      'takes multiple args': ->
+      it 'takes multiple args', ->
         table = new Table 'users'
         manager = new SelectManager()
         manager.from table
         manager.group table.column('id'), table.column('name')
         assert.equal manager.toSql(), 'SELECT FROM "users" GROUP BY "users"."id", "users"."name"'
 
-      'it makes strings literals': ->
+      it 'it makes strings literals', ->
         table = new Table 'users'
         manager = new SelectManager()
         manager.from table
@@ -423,14 +431,14 @@ tests = vows.describe('Querying stuff').addBatch
 
     # TODO Implement delete
 
-    'where sql':
-      'gives me back the where sql': ->
+    describe 'where sql', ->
+      it 'gives me back the where sql', ->
         table = new Table 'users'
         manager = new SelectManager()
         manager.from table
         manager.where table.column('id').eq(10)
         assert.equal manager.whereSql(), 'WHERE "users"."id" = 10'
-      'returns null when there are no wheres': ->
+      it 'returns null when there are no wheres', ->
         table = new Table 'users'
         manager = new SelectManager()
         manager.from table
@@ -438,24 +446,24 @@ tests = vows.describe('Querying stuff').addBatch
 
     # TODO Implement Update
 
-    'project':
-      'takes multiple args': ->
+    describe 'project', ->
+      it 'takes multiple args', ->
         manager = new SelectManager()
         manager.project(new Nodes.SqlLiteral('foo'), new Nodes.SqlLiteral('bar'))
         assert.equal manager.toSql(), 'SELECT foo, bar'
 
-      'takes strings': ->
+      it 'takes strings', ->
         manager = new SelectManager()
         manager.project(Rel.sql('*'))
         assert.equal manager.toSql(), 'SELECT *'
 
-      'takes sql literals': ->
+      it 'takes sql literals', ->
         manager = new SelectManager()
         manager.project(new Nodes.SqlLiteral('*'))
         assert.equal manager.toSql(), 'SELECT *'
 
-    'take':
-      'knows take': ->
+    describe 'take', ->
+      it 'knows take', ->
         table = new Table 'users'
         manager = new SelectManager()
         manager.from(table).project(table.column('id'))
@@ -464,18 +472,18 @@ tests = vows.describe('Querying stuff').addBatch
 
         assert.equal manager.toSql(), 'SELECT "users"."id" FROM "users" WHERE "users"."id" = 1 LIMIT 1'
 
-      'chains': ->
+      it 'chains', ->
         manager = new SelectManager()
         assert.equal manager.take(1).constructor, SelectManager
 
-      'removes limit when null is passed to take only (not limit)': ->
+      it 'removes limit when null is passed to take only (not limit)', ->
         manager = new SelectManager()
         manager.limit(10)
         manager.take(null)
         assert.equal manager.toSql(), 'SELECT'
 
-    'join':
-      'joins itself': ->
+    describe 'join', ->
+      it 'joins itself', ->
         left = new Table 'users'
         right = left.alias()
         predicate = left.column('id').eq(right.column('id'))
@@ -486,8 +494,8 @@ tests = vows.describe('Querying stuff').addBatch
 
         assert.equal mgr.toSql(), 'SELECT * FROM "users" INNER JOIN "users" "users_2" ON "users"."id" = "users_2"."id"'
 
-    'from':
-      'makes sql': ->
+    describe 'from', ->
+      it 'makes sql', ->
         table = new Table 'users'
         manager = new SelectManager()
 
@@ -495,14 +503,14 @@ tests = vows.describe('Querying stuff').addBatch
         manager.project table.column('id')
         assert.equal manager.toSql(), 'SELECT "users"."id" FROM "users"'
 
-      'chains': ->
+      it 'chains', ->
         table = new Table 'users'
         manager = new SelectManager()
         assert.equal manager.from(table).project(table.column('id')).constructor, SelectManager
         assert.equal manager.toSql(), 'SELECT "users"."id" FROM "users"'
 
-    'bools':
-      'work': ->
+    describe 'bools', ->
+      it 'work', ->
         table = new Table 'users'
         manager = new SelectManager()
         manager.from table
@@ -511,8 +519,8 @@ tests = vows.describe('Querying stuff').addBatch
         assert.equal manager.toSql(),
           'SELECT "users"."id" FROM "users" WHERE "users"."underage" = true'
 
-    'not':
-      'works': ->
+    describe 'not', ->
+      it 'works', ->
         table = new Table 'users'
         manager = new SelectManager()
         manager.from table
@@ -521,8 +529,8 @@ tests = vows.describe('Querying stuff').addBatch
         assert.equal manager.toSql(),
           'SELECT "users"."id" FROM "users" WHERE NOT ("users"."age" > 18)'
 
-    'subqueries':
-      'work in from': ->
+    describe 'subqueries', ->
+      it 'work in from', ->
         a = Rel.select().project(new Nodes.As(1, new Nodes.UnqualifiedName('x'))).as('a')
         b = Rel.select().project(new Nodes.As(1, new Nodes.UnqualifiedName('x'))).as('b')
         q = Rel.select()
@@ -531,13 +539,13 @@ tests = vows.describe('Querying stuff').addBatch
           .project(Rel.star())
         assert.equal q.toSql(),
           'SELECT * FROM (SELECT 1 AS "x") "a" LEFT OUTER JOIN (SELECT 1 AS "x") "b" ON "a"."x" = "b"."x"'
-      'work in project': ->
+      it 'work in project', ->
         a = Rel.select().project(1)
         b = Rel.select().project(1)
         q = Rel.select().project(a.eq(b))
         assert.equal q.toSql(), 'SELECT (SELECT 1) = (SELECT 1)'
 
-    'all comparators work': ->
+    it 'all comparators work', ->
       tab = Rel.table('x')
       q = Rel.select().project(
         tab.column('x').lt(2)
@@ -552,11 +560,11 @@ tests = vows.describe('Querying stuff').addBatch
       ).toSql()
       assert.equal q, """SELECT "x"."x" < 2, "x"."x" <= 2, "x"."x" > 2, "x"."x" >= 2, "x"."x" <> 2, "x"."x" IS NULL, "x"."x" IS NOT NULL, "x"."x" LIKE '%John%', "x"."x" ILIKE '%john%'"""
 
-    'nulls': ->
+    it 'nulls', ->
       assert.equal Rel.select().project(null).toSql(), 'SELECT NULL'
 
-    'case':
-      'works': ->
+    describe 'case', ->
+      it 'works', ->
         u = Rel.table('users')
         q = Rel.select()
           .from(u)
@@ -586,13 +594,10 @@ tests = vows.describe('Querying stuff').addBatch
           FROM "users"
           """.replace(/\s+/g, ' ').trim()
 
-    'constant literals': ->
+    it 'constant literals', ->
       assert.equal Rel.select().project(Rel.lit(false).not()).toSql(),
         "SELECT NOT (false)"
       assert.equal Rel.select().project(Rel.lit(3).eq(Rel.lit(3))).toSql(),
         "SELECT 3 = 3"
       assert.equal Rel.select().project(Rel.lit('a').in(Rel.lit(['a']))).toSql(),
         "SELECT 'a' IN ('a')"
-
-tests.export module
-
