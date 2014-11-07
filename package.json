@@ -58,7 +58,6 @@
   },
   "devDependencies": {
     "chai": "^1.9.2",
-    "mocha": "^2.0.1",
-    "vows": "git+https://github.com/snoble/vows.git#1e8fa11fdb2f67eac285cbcbcf6485eec131fa02"
+    "mocha": "^2.0.1"
   }
 }
