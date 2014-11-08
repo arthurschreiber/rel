@@ -6,13 +6,12 @@ Expressions = require '../expressions'
 Predications = require '../predications'
 
 class FunctionNode extends Node
+  u(@prototype).extend Expressions, Predications
+
   constructor: (expr, aliaz=null) ->
     @expressions = expr
     @alias = aliaz
     @distinct = false
-
-    u(@).extend Expressions
-    u(@).extend Predications
 
   as: (aliaz) ->
     @alias = new SqlLiteral(aliaz)

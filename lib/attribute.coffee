@@ -4,8 +4,8 @@ Expressions = require './expressions'
 Predications = require './predications'
 
 class Attribute
+  u(@prototype).extend Expressions, Predications
+
   constructor: (@relation, @name) ->
-    u(@).extend Expressions
-    u(@).extend Predications
 
 exports = module.exports = Attribute

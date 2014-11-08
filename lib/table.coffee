@@ -10,13 +10,14 @@ FactoryMethods = require './factory-methods'
 Crud = require './crud'
 
 class Table
+  u(@prototype).extend(new FactoryMethods()) # TODO not sure about this.
+  u(@prototype).extend(new Crud())
+
   # TODO I think table alias does nothing.
   constructor: (@name, opts={}) ->
     @columns = null
     @aliases = []
     @tableAlias = null
-    u(@).extend(new FactoryMethods()) # TODO not sure about this.
-    u(@).extend(new Crud())
     @tableAlias = opts['as'] if opts['as']?
 
   from: (table) ->

@@ -17,8 +17,8 @@ class CaseBuilder
   end: -> new Case(@_base, @_cases, @_else)
 
 class Case extends Node
+  u(@prototype).extend Expressions, Predications
+
   constructor: (@_base, @_cases, @_else) ->
-    u(@).extend Expressions
-    u(@).extend Predications
 
 exports = module.exports = CaseBuilder
