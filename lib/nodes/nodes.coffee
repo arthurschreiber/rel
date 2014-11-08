@@ -13,6 +13,9 @@ InsertStatement = require './insert-statement'
 ConstLit = require './const-lit'
 
 u.extend module.exports,
+  True: require './true'
+  False: require './false'
+
   SelectStatement: SelectStatement
   InsertStatement: InsertStatement
   SqlLiteral: SqlLiteral
