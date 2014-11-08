@@ -5,7 +5,7 @@ DeleteManager = require '../lib/delete-manager'
 SqlLiteral = require('../lib/nodes/sql-literal')
 Nodes = require '../lib/nodes/nodes'
 
-describe 'Delete manager', ->
+describe 'DeleteManager', ->
   describe 'from', ->
     it 'uses from', ->
       table = new Table 'users'
@@ -16,7 +16,7 @@ describe 'Delete manager', ->
     it 'chains', ->
       table = new Table 'users'
       dm = new DeleteManager()
-      assert.equal dm.from(table).constructor, DeleteManager
+      assert.strictEqual dm.from(table), dm
 
   describe 'where', ->
     it 'uses where values', ->
@@ -29,4 +29,4 @@ describe 'Delete manager', ->
     it 'chains', ->
       table = new Table 'users'
       dm = new DeleteManager()
-      assert.equal dm.where(table.column('id').eq(10)).constructor, DeleteManager
+      assert.strictEqual dm.where(table.column('id').eq(10)), dm

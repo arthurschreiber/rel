@@ -3,105 +3,167 @@ assert = require('chai').assert
 Table = require '../lib/table'
 SelectManager = require '../lib/select-manager'
 InsertManager = require '../lib/insert-manager'
+TreeManager = require '../lib/tree-manager'
 SqlLiteral = require('../lib/nodes/sql-literal')
 Nodes = require '../lib/nodes/nodes'
 
-describe 'Table stuff', ->
-  describe 'A table', ->
-    beforeEach ->
-      @table = new Table('users')
+describe 'Table', ->
+  beforeEach ->
+    @relation = new Table('users')
 
-    it 'has a from method', ->
-      assert.isNotNull @table.from('user')
+  it 'should create string join nodes', ->
+    join = @relation.createStringJoin('foo')
+    assert.instanceOf join, Nodes.StringJoin
+    assert.equal join.left, 'foo'
 
-    it 'can project things', ->
-      assert.isNotNull @table.project(new require('../lib/nodes/sql-literal')('*'))
+  it 'should create join nodes', ->
+    join = @relation.createJoin 'foo', 'bar'
+    assert.instanceOf join, Nodes.InnerJoin
+    assert.equal join.left, 'foo'
+    assert.equal join.right, 'bar'
 
-    it 'should return sql', ->
-      assert.equal @table.project(new SqlLiteral('*')).toSql(), "SELECT * FROM \"users\""
+  it 'should create join nodes with a class (FullOuterJoin)', ->
+    join = @relation.createJoin 'foo', 'bar', Nodes.FullOuterJoin
+    assert.instanceOf join, Nodes.FullOuterJoin
+    assert.equal join.left, 'foo'
+    assert.equal join.right, 'bar'
 
-    it 'should create string join nodes', ->
-      join = @table.createStringJoin('foo')
-      assert.equal join.constructor, Nodes.StringJoin
+  it.skip 'should create join nodes with a class (OuterJoin)', ->
+    join = @relation.createJoin 'foo', 'bar', Nodes.OuterJoin
+    assert.instanceOf join, Nodes.OuterJoin
+    assert.equal join.left, 'foo'
+    assert.equal join.right, 'bar'
 
-    it 'should create join nodes', ->
-      join = @table.createJoin 'foo', 'bar'
-      assert.equal join.constructor, Nodes.InnerJoin
-      assert.equal join.left, 'foo'
-      assert.equal join.right, 'bar'
+  it 'should create join nodes with a class (RightOuterJoin)', ->
+    join = @relation.createJoin 'foo', 'bar', Nodes.RightOuterJoin
+    assert.instanceOf join, Nodes.RightOuterJoin
+    assert.equal join.left, 'foo'
+    assert.equal join.right, 'bar'
 
-    it 'should create join nodes with a class', ->
-      join = @table.createJoin 'foo', 'bar', Nodes.LeftOuterJoin
-      assert.equal join.constructor, Nodes.LeftOuterJoin
-      assert.equal join.left, 'foo'
-      assert.equal join.right, 'bar'
+  it 'should return an insert manager', ->
+    im = @relation.compileInsert 'VALUES(NULL)'
+    assert.instanceOf im, InsertManager
+    im.into new Table('users')
+    assert.equal im.toSql(), 'INSERT INTO "users" VALUES(NULL)'
 
-    it 'should return an insert manager', ->
-      im = @table.compileInsert 'VALUES(NULL)'
-      assert.equal InsertManager, im.constructor
-      assert.equal im.toSql(), 'INSERT INTO NULL VALUES(NULL)'
+  it 'should return IM from insertManager', ->
+    im = @relation.insertManager()
+    assert.instanceOf im, InsertManager
 
-    it 'should return IM from insertManager', ->
-      im = @table.insertManager()
-      assert.equal InsertManager, im.constructor
-
-    it 'skip: should add an offset', ->
-      sm = @table.skip 2
+  describe 'skip', ->
+    it 'should add an offset', ->
+      sm = @relation.skip 2
       assert.equal sm.toSql(), 'SELECT FROM "users" OFFSET 2'
 
-    it 'selectManager: should return a select manager', ->
-      sm = @table.selectManager()
+  describe 'selectManager', ->
+    it 'should return an empty select manager', ->
+      sm = @relation.selectManager()
+      assert.instanceOf sm, SelectManager
       assert.equal sm.toSql(), 'SELECT'
 
-    it 'having: adds a having clause', ->
-      mgr = @table.having @table.column('id').eq(10)
+  describe.skip 'updateManager', ->
+    it 'should return an update manager', ->
+      um = @relation.updateManager()
+      assert.instanceOf um, UpdateManager
+      assert.equal um.toSql(), 'SELECT'
+
+  describe.skip 'deleteManager', ->
+    it 'should return an update manager', ->
+      dm = @relation.deleteManager()
+      assert.instanceOf dm, DeleteManager
+      assert.equal dm.toSql(), 'SELECT'
+
+  describe 'having', ->
+    it 'adds a having clause', ->
+      mgr = @relation.having @relation.column('id').eq(10)
       assert.equal mgr.toSql(), 'SELECT FROM "users" HAVING "users"."id" = 10'
 
-    it 'group: should create a group', ->
-      mgr = @table.group @table.column('id')
+  describe 'backwards compat', ->
+    # TODO?
+
+  describe 'group', ->
+    it 'should create a group', ->
+      mgr = @relation.group @relation.column('id')
       assert.equal mgr.toSql(), 'SELECT FROM "users" GROUP BY "users"."id"'
 
-    it 'alias: should create a node that proxies a table', ->
-      assert.equal @table.aliases.length, 0
+  describe 'alias', ->
+    it 'should create a node that proxies a table', ->
+      assert.deepEqual @relation.aliases, []
 
-      node = @table.alias()
-      assert.equal @table.aliases.length, 1
+      node = @relation.alias()
+      assert.deepEqual @relation.aliases, [node]
       assert.equal node.name, 'users_2'
-      assert.equal node.column('id').relation, node
+      assert.strictEqual node.column('id').relation, node
 
-    it 'new: takes a hash', ->
+  describe 'new', ->
+    it 'should accept a hash', ->
+      rel = new Table 'users', as: 'foo'
+      assert.equal rel.tableAlias, 'foo'
+
+    it.skip 'ignores as if it equals name', ->
       rel = new Table 'users', as: 'users'
-      assert.isNotNull rel.tableAlias
+      assert.isNull rel.tableAlias
 
-    it 'order: should take an order', ->
-      mgr = @table.order 'foo'
+
+  describe 'order', ->
+    it 'should take an order', ->
+      mgr = @relation.order 'foo'
       assert.equal mgr.toSql(), 'SELECT FROM "users" ORDER BY foo'
 
-    it 'take: should add a limit', ->
-      mgr = @table.take 1
+  describe 'take', ->
+    it 'should add a limit', ->
+      mgr = @relation.take 1
       mgr.project new SqlLiteral('*')
       assert.equal mgr.toSql(), 'SELECT * FROM "users" LIMIT 1'
 
-    it 'project: can project', ->
-      mgr = @table.project new SqlLiteral('*')
+  describe 'project', ->
+    it 'can project', ->
+      mgr = @relation.project new SqlLiteral('*')
       assert.equal mgr.toSql(), 'SELECT * FROM "users"'
 
-    it 'project: takes multiple parameters', ->
-      mgr = @table.project new SqlLiteral('*'), new SqlLiteral('*')
+    it 'takes multiple parameters', ->
+      mgr = @relation.project new SqlLiteral('*'), new SqlLiteral('*')
       assert.equal mgr.toSql(), 'SELECT *, * FROM "users"'
 
-    it 'where: returns a tree manager', ->
-      mgr = @table.where @table.column('id').eq(1)
-      mgr.project @table.column('id')
+  describe 'where', ->
+    it 'returns a tree manager', ->
+      mgr = @relation.where @relation.column('id').eq(1)
+      mgr.project @relation.column('id')
+      assert.instanceOf mgr, TreeManager
       assert.equal mgr.toSql(), 'SELECT "users"."id" FROM "users" WHERE "users"."id" = 1'
 
-    it 'should have a name', ->
-      assert.equal @table.name, 'users'
+  it 'should have a name', ->
+    assert.equal @relation.name, 'users'
 
-    it 'column', ->
-      column = @table.column 'id'
+  it.skip 'should have a table name', ->
+    assert.equal @relation.tableName, 'users'
+
+  describe 'column', ->
+    it "manufactures an attribute if the string names an attribute within the relation", ->
+      column = @relation.column 'id'
       assert.equal column.name, 'id'
 
-    it 'star', ->
-      assert.equal @table.project(@table.star()).toSql(),
-        'SELECT "users".* FROM "users"'
+  describe.skip 'equality', ->
+    it 'is equal with equal ivars', ->
+      relation1 = new Table('users', 'vroom')
+      relation1.aliases     = ['a', 'b', 'c']      
+      relation1.tableAlias  = 'zomg'
+
+      relation2 = new Table('users', 'vroom')
+      relation2.aliases     = ['a', 'b', 'c']
+      relation2.tableAlias  = 'zomg'
+
+      assert.isTrue relation1.equals(relation2)
+      assert.isTrue relation2.equals(relation1)
+
+    it 'is not equal with different ivars', ->
+      relation1 = new Table('users', 'vroom')
+      relation1.aliases     = ['a', 'b', 'c']
+      relation1.tableAlias  = 'zomg'
+
+      relation2 = new Table('users', 'vroom')
+      relation2.aliases     = ['x', 'y', 'z']
+      relation2.tableAlias  = 'zomg'
+
+      assert.isFalse relation1.equals(relation2)
+      assert.isFalse relation2.equals(relation1)
