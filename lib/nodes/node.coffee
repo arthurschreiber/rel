@@ -1,25 +1,18 @@
+Nodes = require './nodes'
+Visitors = require '../visitors'
+
 class Node
-  nodes: ->
-    require './nodes'
-
-  visitors: ->
-    require '../visitors'
-
   not: ->
-    Not = @nodes().Not
-    new Not(@)
+    new Nodes.Not(@)
     
   or: (right) ->
-    Grouping = @nodes().Grouping
-    Or = @nodes().Or
-    new Grouping(new Or(@, right))
+    new Nodes.Grouping(new Nodes.Or(@, right))
     
   and: (right) ->
-    And = @nodes().And
-    new And([@, right])
+    new Nodes.And([@, right])
     
   # TODO Implement each and toSql
   toSql: ->
-    @visitors().visitor().accept @
+    Visitors.visitor().accept @
   
 exports = module.exports = Node

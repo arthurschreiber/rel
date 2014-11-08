@@ -1,8 +1,9 @@
 u = require 'underscore'
 
+Nodes = require './nodes'
+
 class SelectStatement
   constructor: (@cores) ->
-    Nodes = require './nodes'
     @cores = [new Nodes.SelectCore()] unless @cores?
     @orders = []
     @limit = null

@@ -1,5 +1,8 @@
 u = require 'underscore'
+
 Node = require './node'
+Expressions = require '../expressions'
+Predications = require '../predications'
 
 class CaseBuilder
   constructor: (@_base) ->
@@ -15,7 +18,7 @@ class CaseBuilder
 
 class Case extends Node
   constructor: (@_base, @_cases, @_else) ->
-    u(@).extend require '../expressions'
-    u(@).extend require '../predications'
+    u(@).extend Expressions
+    u(@).extend Predications
 
 exports = module.exports = CaseBuilder

@@ -1,19 +1,16 @@
 u = require 'underscore'
+
 SelectManager = require './select-manager'
 Range = require './range'
+Nodes = require './nodes/nodes'
 
 u.extend module.exports,
-  nodes: ->
-    require './nodes/nodes'
-
   as: (other) ->
-    n = @nodes()
-    lit = new n.UnqualifiedName(other)
-    new n.As @, lit
+    lit = new Nodes.UnqualifiedName(other)
+    new Nodes.As @, lit
     
   notEq: (other) ->
-    n = @nodes()
-    new n.NotEqual @, other
+    new Nodes.NotEqual @, other
   
   notEqAny: (others) ->
     @groupingAny 'not_eq', others
@@ -21,12 +18,11 @@ u.extend module.exports,
   notEqAll: (others) ->
     @groupingAll 'not_eq', others
 
-  isNull: -> new (@nodes()).IsNull(@)
-  notNull: -> new (@nodes()).NotNull(@)
+  isNull: -> new (Nodes).IsNull(@)
+  notNull: -> new (Nodes).NotNull(@)
     
   eq: (other) ->
-    n = @nodes()
-    new n.Equality @, other
+    new Nodes.Equality @, other
     
   eqAny: (others) ->
     @groupingAny 'eq', others
@@ -36,14 +32,13 @@ u.extend module.exports,
     
   # TODO Ranges won't work here. Should support an array.
   in: (other) ->
-    n = @nodes()
     switch other.constructor
       when SelectManager
-        new n.In(@, other.ast)
+        new Nodes.In(@, other.ast)
       when Range
-        new n.Between(@, new n.And([other.start, other.finish])) # Start and finish from range.
+        new Nodes.Between(@, new Nodes.And([other.start, other.finish])) # Start and finish from range.
       else
-        new n.In @, other
+        new Nodes.In @, other
     
   inAny: (others) ->
     @groupingAny 'in', others
@@ -53,12 +48,11 @@ u.extend module.exports,
     
   # TODO Ranges won't work here. Should support an array.
   notIn: (other) ->
-    n = @nodes()
     switch other.constructor
       when SelectManager
-        new n.NotIn(@, other.ast)
+        new Nodes.NotIn(@, other.ast)
       else
-        new n.NotIn(@, other)
+        new Nodes.NotIn(@, other)
   
   notInAny: (others) ->
     @groupingAny 'not_in', others
@@ -67,8 +61,7 @@ u.extend module.exports,
     @groupingAll 'not_in', others
     
   matches: (other) ->
-    n = @nodes()
-    new n.Matches @, other
+    new Nodes.Matches @, other
     
   matchesAny: (others) ->
     @groupingAny 'matches', others
@@ -77,8 +70,7 @@ u.extend module.exports,
     @groupingAll 'matches', others
     
   doesNotMatch: (other) ->
-    n = @nodes()
-    new n.DoesNotMatch @, other
+    new Nodes.DoesNotMatch @, other
     
   doesNotMatchAny: (others) ->
     @groupingAny 'does_not_match', others
@@ -88,8 +80,7 @@ u.extend module.exports,
     
   # Greater than
   gteq: (right) ->
-    n = @nodes()
-    new n.GreaterThanOrEqual @, right
+    new Nodes.GreaterThanOrEqual @, right
     
   gteqAny: (others) ->
     @groupingAny 'gteq', others
@@ -98,8 +89,7 @@ u.extend module.exports,
     @groupingAll 'gteq', others
     
   gt: (right) ->
-    n = @nodes()
-    new n.GreaterThan @, right
+    new Nodes.GreaterThan @, right
     
   gtAny: (others) ->
     @groupingAny 'gt', others
@@ -109,8 +99,7 @@ u.extend module.exports,
     
   # Less than
   lteq: (right) ->
-    n = @nodes()
-    new n.LessThanOrEqual @, right
+    new Nodes.LessThanOrEqual @, right
     
   lteqAny: (others) ->
     @groupingAny 'lteq', others
@@ -119,8 +108,7 @@ u.extend module.exports,
     @groupingAll 'lteq', others
     
   lt: (right) ->
-    n = @nodes().LessThan
-    new n(@, right)
+    new Nodes.LessThan(@, right)
     
   ltAny: (others) ->
     @groupingAny 'lt', others
@@ -128,29 +116,25 @@ u.extend module.exports,
   ltAll: (others) ->
     @groupingAll 'lt', others
 
-  like: (right) -> new (@nodes()).Like(@, right)
-  ilike: (right) -> new (@nodes()).ILike(@, right)
+  like: (right) -> new (Nodes).Like(@, right)
+  ilike: (right) -> new (Nodes).ILike(@, right)
     
   asc: ->
-    n = @nodes()
-    new n.Ordering @, 'asc'
+    new Nodes.Ordering @, 'asc'
     
   desc: ->
-    n = @nodes()
-    new n.Ordering @, 'desc'
+    new Nodes.Ordering @, 'desc'
     
   groupingAny: (methodId, others) ->
     others = u(others).clone()
     first = others[methodId](others.shift())
     
-    n = @nodes()
-    new n.Grouping u(others).reduce first, (memo, expr) ->
-      new n.Or([memo, @[methodId](expr)])
+    new Nodes.Grouping u(others).reduce first, (memo, expr) ->
+      new Nodes.Or([memo, @[methodId](expr)])
     
   groupingAll: (methodId, others) ->
     others = u(others).clone()
     first = others[methodId](others.shift())
     
-    n = @nodes()
-    new n.Grouping u(others).reduce first, (memo, expr) ->
-      new n.And([memo, @[methodId](expr)])
+    new Nodes.Grouping u(others).reduce first, (memo, expr) ->
+      new Nodes.And([memo, @[methodId](expr)])

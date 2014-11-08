@@ -1,4 +1,5 @@
 u = require 'underscore'
+
 TreeManager = require './tree-manager'
 InsertStatement = require './nodes/insert-statement'
 Nodes = require './nodes/nodes'

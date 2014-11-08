@@ -1,4 +1,5 @@
 u = require 'underscore'
+
 SelectManager = require './select-manager'
 InsertManager = require './insert-manager'
 UpdateManager = require './update-manager'

@@ -1,19 +1,17 @@
 u = require 'underscore'
-FactoryMethods = require './factory-methods'
 
+FactoryMethods = require './factory-methods'
+Visitors = require('./visitors')
 
 class TreeManager extends FactoryMethods
   constructor: ->
     # TODO need to implement engines with a factory.
-    @visitor = @visitors().visitor()
+    @visitor = Visitors.visitor()
     @ast = null
     @ctx = null
 
-  visitors: ->
-    require('./visitors')
-
   toDot: ->
-    new @visitors().Dot().accept @ast
+    new Visitors.Dot().accept @ast
 
   toSql: ->
     @visitor.accept @ast

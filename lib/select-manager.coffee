@@ -1,5 +1,6 @@
 u = require 'underscore'
-Nodes = null
+
+Nodes = require './nodes/nodes'
 TreeManager = require './tree-manager'
 Visitors = require './visitors'
 Predications = require './predications'
@@ -7,7 +8,6 @@ Predications = require './predications'
 class SelectManager extends TreeManager
   constructor: (table) ->
     super()
-    Nodes = require './nodes/nodes'
     @ast = new Nodes.SelectStatement()
     @ctx = u(@ast.cores).last()
     @from table
@@ -148,6 +148,7 @@ class SelectManager extends TreeManager
       @ctx.top = null
 
     @
+
   # NOTE: Changed from the original limit because I don't think turning a limit off is used
   # very often. So now if you want to a limit off you need to call take(null).
   limit: (limit) ->

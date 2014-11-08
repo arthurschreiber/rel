@@ -1,4 +1,5 @@
 u = require 'underscore'
+
 Attribute = require './attribute'
 # TODO Implement math
 

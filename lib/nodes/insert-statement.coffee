@@ -1,4 +1,5 @@
 u = require 'underscore'
+
 Node = require './node'
 
 class InsertStatement extends Node

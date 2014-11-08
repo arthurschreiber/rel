@@ -1,9 +1,10 @@
 u = require 'underscore'
 
+Expressions = require './expressions'
+Predications = require './predications'
+
 class Attribute
   constructor: (@relation, @name) ->
-    Expressions = require './expressions'
-    Predications = require './predications'
     u(@).extend Expressions
     u(@).extend Predications
 

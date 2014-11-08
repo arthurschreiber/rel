@@ -1,4 +1,5 @@
 u = require 'underscore'
+
 TreeManager = require './tree-manager'
 DeleteStatement = require './nodes/delete-statement'
 Nodes = require './nodes/nodes'
