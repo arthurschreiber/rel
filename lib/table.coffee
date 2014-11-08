@@ -10,8 +10,7 @@ FactoryMethods = require './factory-methods'
 Crud = require './crud'
 
 class Table
-  u.extend(@prototype, FactoryMethods)
-  u(@prototype).extend(new Crud())
+  u.extend(@prototype, FactoryMethods, Crud)
 
   # TODO I think table alias does nothing.
   constructor: (@name, opts={}) ->

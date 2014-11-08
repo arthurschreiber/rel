@@ -1,8 +1,10 @@
+u = require 'underscore'
+
 InsertManager = require './insert-manager'
 UpdateManager = require './update-manager'
 SqlLiteral = require './nodes/sql-literal'
 
-class Crud
+u.extend module.exports,
   compileInsert: (values) ->
     im = @createInsert()
     im.insert values
@@ -31,5 +33,3 @@ class Crud
     um.order @ast.orders
     um.wheres = @ctx.wheres
     um
-
-exports = module.exports = Crud
