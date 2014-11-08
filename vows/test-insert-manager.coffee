@@ -2,12 +2,12 @@ vows = require 'vows'
 assert = require 'assert'
 require 'date-utils'
 
-SelectManager = require '../lib/select-manager'
-InsertManager = require '../lib/insert-manager'
-Table = require '../lib/table'
-SqlLiteral = require('../lib/nodes/sql-literal')
+SelectManager = require '../src/select-manager'
+InsertManager = require '../src/insert-manager'
+Table = require '../src/table'
+SqlLiteral = require('../src/nodes/sql-literal')
 Rel = require('../rel')
-Nodes = require '../lib/nodes/nodes'
+Nodes = require '../src/nodes/nodes'
 
 tests = vows.describe('Inserting stuff').addBatch
   'An insert manager':

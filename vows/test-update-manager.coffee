@@ -2,11 +2,11 @@ vows = require 'vows'
 assert = require 'assert'
 require 'date-utils'
 
-UpdateManager = require '../lib/update-manager'
-Table = require '../lib/table'
-SqlLiteral = require('../lib/nodes/sql-literal')
+UpdateManager = require '../src/update-manager'
+Table = require '../src/table'
+SqlLiteral = require('../src/nodes/sql-literal')
 Rel = require('../rel')
-Nodes = require '../lib/nodes/nodes'
+Nodes = require '../src/nodes/nodes'
 
 tests = vows.describe('Updating stuff').addBatch
   'An update manager':

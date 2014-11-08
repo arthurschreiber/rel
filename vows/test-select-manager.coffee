@@ -1,11 +1,11 @@
 vows = require 'vows'
 assert = require 'assert'
 
-SelectManager = require '../lib/select-manager'
-Table = require '../lib/table'
-SqlLiteral = require('../lib/nodes/sql-literal')
+SelectManager = require '../src/select-manager'
+Table = require '../src/table'
+SqlLiteral = require('../src/nodes/sql-literal')
 Rel = require('../rel')
-Nodes = require '../lib/nodes/nodes'
+Nodes = require '../src/nodes/nodes'
 
 tests = vows.describe('Querying stuff').addBatch
   'A select manager':

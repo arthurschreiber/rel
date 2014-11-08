@@ -2,11 +2,11 @@ vows = require 'vows'
 assert = require 'assert'
 
 u = require 'underscore'
-Table = require '../lib/table'
-SelectManager = require '../lib/select-manager'
-InsertManager = require '../lib/insert-manager'
-SqlLiteral = require('../lib/nodes/sql-literal')
-Nodes = require '../lib/nodes/nodes'
+Table = require '../src/table'
+SelectManager = require '../src/select-manager'
+InsertManager = require '../src/insert-manager'
+SqlLiteral = require('../src/nodes/sql-literal')
+Nodes = require '../src/nodes/nodes'
 
 tests = vows.describe('Table stuff').addBatch
   'A table':
@@ -17,7 +17,7 @@ tests = vows.describe('Table stuff').addBatch
       assert.isNotNull table.from('user')
 
     'it can project things': (table) ->
-      assert.isNotNull table.project(new require('../lib/nodes/sql-literal')('*'))
+      assert.isNotNull table.project(new require('../src/nodes/sql-literal')('*'))
 
     'it should return sql': (table) ->
       assert.equal table.project(new SqlLiteral('*')).toSql(), "SELECT * FROM \"users\""

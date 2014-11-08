@@ -2,10 +2,10 @@ vows = require 'vows'
 assert = require 'assert'
 
 u = require 'underscore'
-Table = require '../lib/table'
-DeleteManager = require '../lib/delete-manager'
-SqlLiteral = require('../lib/nodes/sql-literal')
-Nodes = require '../lib/nodes/nodes'
+Table = require '../src/table'
+DeleteManager = require '../src/delete-manager'
+SqlLiteral = require('../src/nodes/sql-literal')
+Nodes = require '../src/nodes/nodes'
 
 tests = vows.describe('Deleting stuff').addBatch
   'Delete manager':
