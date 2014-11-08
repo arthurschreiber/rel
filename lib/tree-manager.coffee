@@ -3,7 +3,9 @@ u = require 'underscore'
 FactoryMethods = require './factory-methods'
 Visitors = require('./visitors')
 
-class TreeManager extends FactoryMethods
+class TreeManager
+  u.extend(@prototype, FactoryMethods)
+
   constructor: ->
     # TODO need to implement engines with a factory.
     @visitor = Visitors.visitor()

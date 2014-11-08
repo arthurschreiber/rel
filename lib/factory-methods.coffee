@@ -1,6 +1,8 @@
+u = require 'underscore'
+
 Nodes = require './nodes/nodes'
 
-class FactoryMethods
+u.extend module.exports,
   createTableAlias: (relation, name) ->
     new Nodes.TableAlias(relation, name)
 
@@ -18,5 +20,3 @@ class FactoryMethods
 
   grouping: (expr) ->
     new Nodes.Grouping expr
-
-exports = module.exports = FactoryMethods

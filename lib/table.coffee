@@ -10,7 +10,7 @@ FactoryMethods = require './factory-methods'
 Crud = require './crud'
 
 class Table
-  u(@prototype).extend(new FactoryMethods()) # TODO not sure about this.
+  u.extend(@prototype, FactoryMethods)
   u(@prototype).extend(new Crud())
 
   # TODO I think table alias does nothing.
