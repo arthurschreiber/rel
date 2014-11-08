@@ -1,6 +1,6 @@
 u = require 'underscore'
 
-Nodes = require './nodes'
+Nodes = require './index'
 
 class SelectStatement
   constructor: (@cores) ->

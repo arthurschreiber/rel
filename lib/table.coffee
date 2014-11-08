@@ -5,7 +5,7 @@ InsertManager = require './insert-manager'
 UpdateManager = require './update-manager'
 DeleteManager = require './delete-manager'
 Attributes = require './attributes'
-Nodes = require './nodes/nodes'
+Nodes = require './nodes'
 FactoryMethods = require './factory-methods'
 Crud = require './crud'
 

@@ -1,6 +1,6 @@
 u = require 'underscore'
 Visitor = require './visitor'
-Nodes = require '../nodes/nodes'
+Nodes = require '../nodes'
 SqlLiteral = require '../nodes/sql-literal'
 Attributes = require '../attributes'
 require 'date-utils'

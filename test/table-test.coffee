@@ -5,7 +5,7 @@ SelectManager = require '../lib/select-manager'
 InsertManager = require '../lib/insert-manager'
 TreeManager = require '../lib/tree-manager'
 SqlLiteral = require('../lib/nodes/sql-literal')
-Nodes = require '../lib/nodes/nodes'
+Nodes = require '../lib/nodes'
 
 describe 'Table', ->
   beforeEach ->

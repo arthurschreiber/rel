@@ -1,4 +1,4 @@
-Nodes = require './nodes'
+Nodes = require './index'
 Visitors = require '../visitors'
 
 class Node

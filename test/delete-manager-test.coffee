@@ -3,7 +3,7 @@ assert = require('chai').assert
 Table = require '../lib/table'
 DeleteManager = require '../lib/delete-manager'
 SqlLiteral = require('../lib/nodes/sql-literal')
-Nodes = require '../lib/nodes/nodes'
+Nodes = require '../lib/nodes'
 
 describe 'DeleteManager', ->
   describe 'from', ->

@@ -1,4 +1,4 @@
-Nodes = require './lib/nodes/nodes'
+Nodes = require './lib/nodes'
 Range = require './lib/range'
 Table = require './lib/table'
 SelectManager = require './lib/select-manager'

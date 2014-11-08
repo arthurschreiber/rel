@@ -5,7 +5,7 @@ InsertManager = require '../lib/insert-manager'
 Table = require '../lib/table'
 SqlLiteral = require('../lib/nodes/sql-literal')
 Rel = require('../rel')
-Nodes = require '../lib/nodes/nodes'
+Nodes = require '../lib/nodes'
 
 describe 'Inserting stuff', ->
   describe 'An insert manager', ->

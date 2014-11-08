@@ -4,7 +4,7 @@ SelectManager = require '../lib/select-manager'
 Table = require '../lib/table'
 SqlLiteral = require('../lib/nodes/sql-literal')
 Rel = require('../rel')
-Nodes = require '../lib/nodes/nodes'
+Nodes = require '../lib/nodes'
 
 describe 'Querying stuff', ->
   describe 'A select manager', ->

@@ -4,7 +4,7 @@ UpdateManager = require '../lib/update-manager'
 Table = require '../lib/table'
 SqlLiteral = require('../lib/nodes/sql-literal')
 Rel = require('../rel')
-Nodes = require '../lib/nodes/nodes'
+Nodes = require '../lib/nodes'
 
 describe 'UpdateManager', ->
   it.skip 'should not quote sql literals', ->

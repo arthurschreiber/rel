@@ -1,7 +1,7 @@
 assert = require('chai').assert
 
 Rel =
-  Nodes: require '../../lib/nodes/nodes'
+  Nodes: require '../../lib/nodes'
   Table: require '../../lib/table'
   Visitors:
     ToSql: require '../../lib/visitors/to-sql'

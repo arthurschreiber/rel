@@ -2,7 +2,7 @@ u = require 'underscore'
 
 SelectManager = require './select-manager'
 Range = require './range'
-Nodes = require './nodes/nodes'
+Nodes = require './nodes'
 
 u.extend module.exports,
   as: (other) ->

@@ -1,6 +1,6 @@
 u = require 'underscore'
 
-Nodes = require './nodes/nodes'
+Nodes = require './nodes'
 TreeManager = require './tree-manager'
 Visitors = require './visitors'
 Predications = require './predications'

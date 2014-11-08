@@ -2,7 +2,7 @@ u = require 'underscore'
 
 TreeManager = require './tree-manager'
 UpdateStatement = require './nodes/update-statement'
-Nodes = require './nodes/nodes'
+Nodes = require './nodes'
 
 class UpdateManager extends TreeManager
   constructor: ->

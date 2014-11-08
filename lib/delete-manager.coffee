@@ -2,7 +2,7 @@ u = require 'underscore'
 
 TreeManager = require './tree-manager'
 DeleteStatement = require './nodes/delete-statement'
-Nodes = require './nodes/nodes'
+Nodes = require './nodes'
 
 class DeleteManager extends TreeManager
   constructor: ->

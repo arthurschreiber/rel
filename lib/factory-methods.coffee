@@ -1,6 +1,6 @@
 u = require 'underscore'
 
-Nodes = require './nodes/nodes'
+Nodes = require './nodes'
 
 u.extend module.exports,
   createTableAlias: (relation, name) ->
