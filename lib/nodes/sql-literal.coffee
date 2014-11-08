@@ -6,7 +6,7 @@ Predications = require('../predications')
 class SqlLiteral
   constructor: (@value) ->
     u(@).extend(Expressions)
-    u(@).extend(SqlLiteral)
+    u(@).extend(Predications)
 
   toString: ->
     @value

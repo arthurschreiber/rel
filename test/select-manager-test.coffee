@@ -139,7 +139,7 @@ describe 'Querying stuff', ->
         mgr.project(new SqlLiteral('*'))
         m2 = new SelectManager()
         m2.project mgr.exists().as('foo')
-        assert.equal m2.toSql(), "SELECT EXISTS (#{mgr.toSql()}) AS \"foo\""
+        assert.equal m2.toSql(), "SELECT EXISTS (#{mgr.toSql()}) AS foo"
 
     describe 'union', ->
       beforeEach ->
