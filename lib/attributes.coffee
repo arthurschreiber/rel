@@ -2,8 +2,7 @@ u = require 'underscore'
 Attribute = require './attribute'
 # TODO Implement math
 
-
-Attributes = 
+u.extend module.exports,
   Attribute: Attribute
   AttrString: class AttrString extends Attribute
   AttrTime: class AttrTime extends Attribute
@@ -12,5 +11,3 @@ Attributes =
   AttrFloat: class AttrFloat extends Attribute
   AttrInteger: class AttrInteger extends Attribute
   AttrUndefined: class AttrUndefined extends Attribute
-
-exports = module.exports = Attributes

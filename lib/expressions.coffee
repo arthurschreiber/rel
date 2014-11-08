@@ -1,6 +1,8 @@
+u = require 'underscore'
+
 Nodes = require './nodes/nodes'
 
-Expressions =
+u.extend module.exports,
   count: (distinct=false) ->
     new Nodes.Count [@], distinct
     
@@ -15,5 +17,3 @@ Expressions =
     
   average: ->
     new Nodes.Avg [@], new(Nodes.SqlLiteral('avg_id'))
-    
-exports = module.exports = Expressions

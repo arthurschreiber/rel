@@ -2,7 +2,7 @@ u = require 'underscore'
 SelectManager = require './select-manager'
 Range = require './range'
 
-Predications =
+u.extend module.exports,
   nodes: ->
     require './nodes/nodes'
 
@@ -154,5 +154,3 @@ Predications =
     n = @nodes()
     new n.Grouping u(others).reduce first, (memo, expr) ->
       new n.And([memo, @[methodId](expr)])
-
-exports = module.exports = Predications

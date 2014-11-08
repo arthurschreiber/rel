@@ -1,11 +1,13 @@
+u = require 'underscore'
+
 Dot = require './visitors/dot'
 Postgresql = require './visitors/postgresql'
 ToSql = require './visitors/to-sql'
 
-Visitors = 
+u.extend module.exports,
   Dot: Dot
   visitor: ->
-    # TODO figure out a factory way of returning the 
+    # TODO figure out a factory way of returning the
     new Postgresql()
   JoinSql:
     visitRelNodesSelectCore: (o) ->
@@ -16,6 +18,3 @@ Visitors =
   WhereSql: class WhereSql extends ToSql
     visitRelNodesSelectCore: (o) ->
       "WHERE #{(o.wheres.map (x) => @visit x).join ' AND ' }"
-
-
-exports = module.exports = Visitors

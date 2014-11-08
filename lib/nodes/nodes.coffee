@@ -1,3 +1,5 @@
+u = require 'underscore'
+
 Binary = require './binary'
 SelectStatement = require('./select-statement')
 SqlLiteral = require('./sql-literal')
@@ -10,7 +12,7 @@ Attribute = require '../attribute'
 InsertStatement = require './insert-statement'
 ConstLit = require './const-lit'
 
-Nodes = 
+u.extend module.exports,
   SelectStatement: SelectStatement
   InsertStatement: InsertStatement
   SqlLiteral: SqlLiteral
@@ -48,7 +50,6 @@ Nodes =
   DoesNotMatch: class DoesNotMatch extends Binary
   GreaterThan: class GreaterThan extends Binary
   GreaterThanOrEqual: class GreaterThanOrEqual extends Binary
-  Join: class Join extends Binary
   Like: class Like extends Binary
   ILike: class ILike extends Binary
   LessThan: class LessThan extends Binary
@@ -116,6 +117,3 @@ Nodes =
 
     name: ->
       @expr
-
-  
-exports = module.exports = Nodes
