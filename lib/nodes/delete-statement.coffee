@@ -7,6 +7,4 @@ class DeleteStatement extends Node
     @left = @relation
     @right = @wheres
 
-
 exports = module.exports = DeleteStatement
-

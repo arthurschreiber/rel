@@ -7,5 +7,4 @@ class Attribute
     u(@).extend Expressions
     u(@).extend Predications
 
-
 exports = module.exports = Attribute

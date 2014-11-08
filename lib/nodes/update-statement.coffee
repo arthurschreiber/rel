@@ -15,5 +15,4 @@ class UpdateStatement extends Node
     @wheres = u(@wheres).clone()
     @values = u(@values).clone()
 
-
 exports = module.exports = UpdateStatement

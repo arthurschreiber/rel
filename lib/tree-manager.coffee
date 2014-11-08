@@ -28,5 +28,4 @@ class TreeManager extends FactoryMethods
     @ctx.wheres.push expr
     @
 
-
 exports = module.exports = TreeManager

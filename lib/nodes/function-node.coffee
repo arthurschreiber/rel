@@ -16,5 +16,4 @@ class FunctionNode extends Node
     @alias = new SqlLiteral(aliaz)
     @
 
-
 exports = module.exports = FunctionNode

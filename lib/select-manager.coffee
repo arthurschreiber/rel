@@ -183,7 +183,4 @@ class SelectManager extends TreeManager
     viz = new Visitors.WhereSql()
     new Nodes.SqlLiteral(viz.accept(@ctx))
 
-
-
-
 exports = module.exports = SelectManager

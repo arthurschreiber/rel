@@ -13,6 +13,4 @@ class And extends Node
   right: ->
     @children[1]
 
-
 exports = module.exports = And
-  

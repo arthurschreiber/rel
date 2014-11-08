@@ -16,6 +16,4 @@ class DeleteManager extends TreeManager
   wheres: (list) ->
     @ast.wheres = list
 
-
 exports = module.exports = DeleteManager
-

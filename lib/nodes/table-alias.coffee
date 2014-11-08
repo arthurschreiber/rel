@@ -16,5 +16,4 @@ class TableAlias
   tableName: ->
     @relation().name
 
-
 exports = module.exports = TableAlias
