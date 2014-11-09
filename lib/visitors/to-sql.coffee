@@ -296,10 +296,16 @@ class ToSql extends Visitor
     "(#{@visit o.left}) EXCEPT (#{@visit o.right})"
 
   visitRelNodesIn: (o) ->
-    "#{@visit o.left} IN (#{@visit o.right})"
+    if u.isArray(o.right) && !o.right.length
+      "1=0"
+    else
+      "#{@visit o.left} IN (#{@visit o.right})"
 
   visitRelNodesNotIn: (o) ->
-    "#{@visit o.left} NOT IN (#{@visit o.right})"
+    if u.isArray(o.right) && !o.right.length
+      "1=1"
+    else
+      "#{@visit o.left} NOT IN (#{@visit o.right})"
 
   visitRelNodesBetween: (o) ->
     "#{@visit o.left} BETWEEN (#{@visit o.right})"
