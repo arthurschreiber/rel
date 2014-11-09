@@ -120,10 +120,10 @@ u.extend module.exports,
   ilike: (right) -> new (Nodes).ILike(@, right)
     
   asc: ->
-    new Nodes.Ordering @, 'asc'
+    new Nodes.Ascending @
     
   desc: ->
-    new Nodes.Ordering @, 'desc'
+    new Nodes.Descending @
     
   groupingAny: (methodId, others) ->
     others = u(others).clone()

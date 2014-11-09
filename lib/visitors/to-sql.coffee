@@ -147,8 +147,11 @@ class ToSql extends Visitor
 
   visitRelNodesSqlLiteral: (o) -> @literal(o)
 
-  visitRelNodesOrdering: (o) ->
-    "#{@visit o.left} #{o.right.toUpperCase()}"
+  visitRelNodesDescending: (o) ->
+    "#{@visit o.expr} DESC"
+
+  visitRelNodesAscending: (o) ->
+    "#{@visit o.expr} ASC"
 
   visitRelNodesGroup: (o) ->
     @visit o.expr

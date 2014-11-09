@@ -65,7 +65,9 @@ u.extend module.exports,
   UnionAll: class UnionAll extends Binary
   Intersect: class Intersect extends Binary
   Except: class Except extends Binary
-  Ordering: class Ordering extends Binary
+  Ordering: require './ordering'
+  Ascending: require './ascending'
+  Descending: require './descending'
   IsNull: class IsNull extends Unary
   NotNull: class NotNull extends Unary
   Bin: class Bin extends Unary
