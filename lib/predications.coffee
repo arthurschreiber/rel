@@ -13,10 +13,10 @@ u.extend module.exports,
     new Nodes.NotEqual @, other
   
   notEqAny: (others) ->
-    @groupingAny 'not_eq', others
+    @groupingAny 'notEq', others
     
   notEqAll: (others) ->
-    @groupingAll 'not_eq', others
+    @groupingAll 'notEq', others
 
   isNull: -> new (Nodes).IsNull(@)
   notNull: -> new (Nodes).NotNull(@)
@@ -55,10 +55,10 @@ u.extend module.exports,
         new Nodes.NotIn(@, other)
   
   notInAny: (others) ->
-    @groupingAny 'not_in', others
+    @groupingAny 'notIn', others
     
   notInAll: (others) ->
-    @groupingAll 'not_in', others
+    @groupingAll 'notIn', others
     
   matches: (other) ->
     new Nodes.Matches @, other
@@ -73,10 +73,10 @@ u.extend module.exports,
     new Nodes.DoesNotMatch @, other
     
   doesNotMatchAny: (others) ->
-    @groupingAny 'does_not_match', others
+    @groupingAny 'doesNotMatch', others
     
   doesNotMatchAll: (others) ->
-    @groupingAll 'does_not_match', others
+    @groupingAll 'doesNotMatch', others
     
   # Greater than
   gteq: (right) ->
@@ -126,15 +126,15 @@ u.extend module.exports,
     new Nodes.Descending @
     
   groupingAny: (methodId, others) ->
-    others = u(others).clone()
-    first = others[methodId](others.shift())
+    nodes = u.map(others, (expr) => @[methodId](expr))
     
-    new Nodes.Grouping u(others).reduce first, (memo, expr) ->
-      new Nodes.Or([memo, @[methodId](expr)])
+    new Nodes.Grouping(u.reduce(nodes, (memo, node) ->
+      new Nodes.Or(memo, node)
+    ))
     
   groupingAll: (methodId, others) ->
-    others = u(others).clone()
-    first = others[methodId](others.shift())
+    nodes = u.map(others, (expr) => @[methodId](expr))
     
-    new Nodes.Grouping u(others).reduce first, (memo, expr) ->
-      new Nodes.And([memo, @[methodId](expr)])
+    new Nodes.Grouping(u.reduce(nodes, (memo, node) ->
+      new Nodes.And(memo, node)
+    ))
