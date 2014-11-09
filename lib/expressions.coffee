@@ -3,17 +3,17 @@ u = require 'underscore'
 Nodes = require './nodes'
 
 u.extend module.exports,
-  count: (distinct=false) ->
+  count: (distinct = false) ->
     new Nodes.Count [@], distinct
-    
+
   sum: ->
-    new Nodes.Sum [@], new Nodes.SqlLiteral('sum_id')
-    
+    new Nodes.Sum [@]
+
   maximum: ->
-    new Nodes.Max [@], new(Nodes.SqlLiteral('max_id'))
-    
+    new Nodes.Max [@]
+
   minimum: ->
-    new Nodes.Min [@], new(Nodes.SqlLiteral('min_id'))
-    
+    new Nodes.Min [@]
+
   average: ->
-    new Nodes.Avg [@], new(Nodes.SqlLiteral('avg_id'))
+    new Nodes.Avg [@]

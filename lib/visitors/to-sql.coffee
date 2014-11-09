@@ -156,6 +156,33 @@ class ToSql extends Visitor
   visitRelNodesGroup: (o) ->
     @visit o.expr
 
+  aggregate: (name, o) ->
+    out = "#{name}("
+
+    out += 'DISTINCT ' if o.distinct
+    out += u.map(o.expressions, (expr) =>
+      @visit(expr)
+    ).join(", ")
+    out += " AS #{@visit o.alias}" if o.alias
+    out += ')'
+
+    out
+
+  visitRelNodesCount: (o) ->
+    @aggregate "COUNT", o
+
+  visitRelNodesSum: (o) ->
+    @aggregate "SUM", o
+
+  visitRelNodesMax: (o) ->
+    @aggregate "MAX", o
+
+  visitRelNodesMin: (o) ->
+    @aggregate "MIN", o
+
+  visitRelNodesAvg: (o) ->
+    @aggregate "AVG", o
+
   visitRelNodesAttribute: (o) ->
     @lastColumn = @columnFor o
     joinName = (o.relation.tableAlias || o.relation.name).toString()

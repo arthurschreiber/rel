@@ -1,6 +1,7 @@
 u = require 'underscore'
 
 Binary = require './binary'
+Count = require './count'
 SelectStatement = require('./select-statement')
 SqlLiteral = require('./sql-literal')
 SelectCore = require('./select-core')
@@ -42,6 +43,7 @@ u.extend module.exports,
     column: (name) ->
       new Attribute(@, name)
   FunctionNode: FunctionNode
+  Count: Count
   Sum: class Sum extends FunctionNode
   Exists: class Exists extends FunctionNode
   Max: class Max extends FunctionNode
