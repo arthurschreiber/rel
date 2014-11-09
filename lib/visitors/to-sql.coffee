@@ -298,6 +298,9 @@ class ToSql extends Visitor
   visitRelNodesIn: (o) ->
     "#{@visit o.left} IN (#{@visit o.right})"
 
+  visitRelNodesNotIn: (o) ->
+    "#{@visit o.left} NOT IN (#{@visit o.right})"
+
   visitRelNodesBetween: (o) ->
     "#{@visit o.left} BETWEEN (#{@visit o.right})"
 
