@@ -280,6 +280,12 @@ class ToSql extends Visitor
     else
       "#{@visit o.left} != #{@visit(o.right)}"
 
+  visitRelNodesMatches: (o) ->
+    "#{@visit o.left} LIKE #{@visit o.right}"
+
+  visitRelNodesDoesNotMatch: (o) ->
+    "#{@visit o.left} NOT LIKE #{@visit o.right}"
+
   visitRelNodesNot: (o) ->
     "NOT (#{@visit o.expr})"
 

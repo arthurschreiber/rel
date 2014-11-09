@@ -52,14 +52,14 @@ u.extend module.exports,
   As: class As extends Binary
   Assignment: class Assignment extends Binary
   Between: class Between extends Binary
-  DoesNotMatch: class DoesNotMatch extends Binary
+  Matches: require './matches'
+  DoesNotMatch: require './does-not-match'
   GreaterThan: class GreaterThan extends Binary
   GreaterThanOrEqual: class GreaterThanOrEqual extends Binary
   Like: class Like extends Binary
   ILike: class ILike extends Binary
   LessThan: class LessThan extends Binary
   LessThanOrEqual: class LessThanOrEqual extends Binary
-  Matches: class Matches extends Binary
   NotEqual: class NotEqual extends Binary
   NotIn: class NotIn extends Binary
   Or: class Or extends Binary
