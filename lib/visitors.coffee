@@ -9,6 +9,7 @@ u.extend module.exports,
   visitor: ->
     # TODO figure out a factory way of returning the
     new Postgresql()
+  ToSql: ToSql
   JoinSql:
     visitRelNodesSelectCore: (o) ->
       (o.source.right.map (j) => @visit(j)).join ' '
