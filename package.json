@@ -54,7 +54,7 @@
     "lib": "lib"
   },
   "scripts": {
-    "test": "mocha"
+    "test": "mocha test/**/*-test.coffee"
   },
   "devDependencies": {
     "chai": "^1.9.2",
