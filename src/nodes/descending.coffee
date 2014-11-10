@@ -1,8 +1,9 @@
 Ordering = require './ordering'
+Ascending = require './ascending'
 
 class Descending extends Ordering
   reverse: ->
-    new Ascending(expr)
+    new Ascending(@expr)
 
   direction: ->
     'desc'
