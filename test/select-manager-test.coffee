@@ -558,7 +558,7 @@ describe 'Querying stuff', ->
         tab.column('x').like('%John%')
         tab.column('x').ilike('%john%')
       ).toSql()
-      assert.equal q, """SELECT "x"."x" < 2, "x"."x" <= 2, "x"."x" > 2, "x"."x" >= 2, "x"."x" <> 2, "x"."x" IS NULL, "x"."x" IS NOT NULL, "x"."x" LIKE '%John%', "x"."x" ILIKE '%john%'"""
+      assert.equal q, """SELECT "x"."x" < 2, "x"."x" <= 2, "x"."x" > 2, "x"."x" >= 2, "x"."x" != 2, "x"."x" IS NULL, "x"."x" IS NOT NULL, "x"."x" LIKE '%John%', "x"."x" ILIKE '%john%'"""
 
     it 'nulls', ->
       assert.equal Rel.select().project(null).toSql(), 'SELECT NULL'
