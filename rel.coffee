@@ -1,6 +1,7 @@
 Nodes = require './lib/nodes'
 Range = require './lib/range'
 Table = require './lib/table'
+Visitors = require './lib/visitors'
 SelectManager = require './lib/select-manager'
 InsertManager = require './lib/select-manager'
 UpdateManager = require './lib/select-manager'
@@ -26,6 +27,8 @@ Rel =
   Nodes: Nodes
 
   Table: Table
+
+  Visitors: Visitors
 
   table: (args...) -> new Table(args...)
   select: -> new SelectManager()
