@@ -21,11 +21,11 @@ describe 'Rel.Visitors.ToSql', ->
     sql = @compile(node)
     assert.equal(sql, '"users".*')
 
-  it.skip 'should visit named functions', ->
-    func = new Rel.Nodes.NamedFunction('omg', Rel.star())
+  it 'should visit named functions', ->
+    func = new Rel.Nodes.NamedFunction('omg', [Rel.star()])
     assert.equal(@compile(func), 'omg(*)')
 
-  it.skip 'should chain predications on named functions', ->
+  it 'should chain predications on named functions', ->
     func = new Rel.Nodes.NamedFunction('omg', [Rel.star()])
     sql = @compile(func.eq(2))
     assert.equal sql, 'omg(*) = 2'

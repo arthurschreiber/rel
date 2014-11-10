@@ -158,6 +158,9 @@ class ToSql extends Visitor
   visitRelNodesGroup: (o) ->
     @visit o.expr
 
+  visitRelNodesNamedFunction: (o) ->
+    @aggregate(o.name, o)
+
   aggregate: (name, o) ->
     out = "#{name}("
 

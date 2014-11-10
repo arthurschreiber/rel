@@ -23,6 +23,7 @@ u.extend module.exports,
   StringJoin: require './string-join'
   TableAlias: require './table-alias'
   FunctionNode: require './function-node'
+  NamedFunction: require './named-function'
   Count: require './count'
   Sum: require './sum'
   Exists: require './exists'
