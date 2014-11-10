@@ -18,6 +18,9 @@ u.extend module.exports,
   notEqAll: (others) ->
     @groupingAll 'notEq', others
 
+  isNull: -> new (Nodes).IsNull(@)
+  notNull: -> new (Nodes).NotNull(@)
+    
   eq: (other) ->
     new Nodes.Equality @, other
     

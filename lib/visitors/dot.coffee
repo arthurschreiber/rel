@@ -145,6 +145,7 @@ class Dot extends Visitor
   visitTime: (o) -> visitString(o)
   visitDate: (o) -> visitString(o)
   visitDateTime: (o) -> visitString(o)
+  visitNullClass: (o) -> visitString(o)
   visitTrueClass: (o) -> visitString(o)
   visitFalseClass: (o) -> visitString(o)
   visitRelSqlLiteral: (o) -> visitString(o)
