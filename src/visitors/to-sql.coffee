@@ -145,6 +145,8 @@ class ToSql extends Visitor
   literal: (o) ->
     o
 
+  visitRelNodesBindParam: (o) -> @literal(o) # TODO Collect bind var
+
   visitRelNodesSqlLiteral: (o) -> @literal(o)
 
   visitRelNodesDescending: (o) ->

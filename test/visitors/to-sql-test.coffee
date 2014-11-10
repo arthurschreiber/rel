@@ -11,8 +11,8 @@ describe 'Rel.Visitors.ToSql', ->
     @compile = (node) ->
       @visitor.accept(node)
 
-  it.skip 'works with BindParams', ->
-    node = Rel.Nodes.BindParams('?')
+  it 'works with BindParams', ->
+    node = new Rel.Nodes.BindParam('?')
     sql = @compile(node)
     assert.equal(sql, '?')
 

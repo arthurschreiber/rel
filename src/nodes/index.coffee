@@ -7,7 +7,7 @@ ConstLit = require './const-lit'
 u.extend module.exports,
   True: require './true'
   False: require './false'
-
+  BindParam: require './bind-param'
   SelectStatement: require './select-statement'
   InsertStatement: require './insert-statement'
   SqlLiteral: require('./sql-literal')
