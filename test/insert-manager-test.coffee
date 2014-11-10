@@ -1,20 +1,15 @@
-vows = require 'vows'
-assert = require 'assert'
-require 'date-utils'
+assert = require('chai').assert
 
 SelectManager = require '../src/select-manager'
 InsertManager = require '../src/insert-manager'
 Table = require '../src/table'
 SqlLiteral = require('../src/nodes/sql-literal')
-Rel = require('../rel')
+Rel = require('../src/rel')
 Nodes = require '../src/nodes/nodes'
 
-tests = vows.describe('Inserting stuff').addBatch
-  'An insert manager':
-    'new': ->
-      assert.isNotNull new InsertManager()
-
-    'can create a Values node': ->
+describe 'Inserting stuff', ->
+  describe 'An insert manager', ->
+    it 'can create a Values node', ->
       table = new Table 'users'
       manager = new InsertManager()
       values = manager.createValues ['a', 'b'], ['c', 'd']
@@ -22,25 +17,25 @@ tests = vows.describe('Inserting stuff').addBatch
       assert.equal values.left.length, ['a', 'b'].length
       assert.equal values.right.length, ['c', 'd'].length
 
-    'allows sql literals': ->
+    it 'allows sql literals', ->
       table = new Table 'users'
       manager = new InsertManager()
       manager.values(manager.createValues [Rel.star()], ['a'])
       assert.equal manager.toSql(), 'INSERT INTO NULL VALUES (*)'
 
-    'inserts false': ->
+    it 'inserts false', ->
       table = new Table 'users'
       manager = new InsertManager()
       manager.insert [[table.column('bool'), false]]
       assert.equal manager.toSql(), 'INSERT INTO "users" ("bool") VALUES (false)'
 
-    'inserts null': ->
+    it 'inserts null', ->
       table = new Table 'users'
       manager = new InsertManager()
       manager.insert [[table.column('id'), null]]
       assert.equal manager.toSql(), 'INSERT INTO "users" ("id") VALUES (NULL)'
 
-    'inserts time': ->
+    it 'inserts time', ->
       table = new Table 'users'
       manager = new InsertManager()
 
@@ -50,41 +45,41 @@ tests = vows.describe('Inserting stuff').addBatch
       manager.insert [[attribute, time]]
       assert.equal manager.toSql(), "INSERT INTO \"users\" (\"created_at\") VALUES ('#{time.toISOString()}')"
 
-    'takes a list of lists': ->
+    it 'takes a list of lists', ->
       table = new Table 'users'
       manager = new InsertManager()
       manager.into table
       manager.insert [[table.column('id'), 1], [table.column('name'), 'carl']]
       assert.equal manager.toSql(), 'INSERT INTO "users" ("id", "name") VALUES (1, \'carl\')'
 
-    'defaults the table': ->
+    it 'defaults the table', ->
       table = new Table 'users'
       manager = new InsertManager()
       manager.insert [[table.column('id'), 1], [table.column('name'), 'carl']]
       assert.equal manager.toSql(), 'INSERT INTO "users" ("id", "name") VALUES (1, \'carl\')'
 
-    'it takes an empty list': ->
+    it 'it takes an empty list', ->
       manager = new InsertManager()
       manager.insert []
-      assert.isNull manager.ast.values
+      assert.strictEqual manager.ast.values, null
 
-    'into':
-      'converts to sql': ->
+    describe 'into', ->
+      it 'converts to sql', ->
         table = new Table 'users'
         manager = new InsertManager()
         manager.into table
         assert.equal manager.toSql(), 'INSERT INTO "users"'
 
-    'columns':
-      'converts to sql': ->
+    describe 'columns', ->
+      it 'converts to sql', ->
         table = new Table 'users'
         manager = new InsertManager()
         manager.into table
         manager.columns().push table.column('id')
         assert.equal manager.toSql(), 'INSERT INTO "users" ("id")'
 
-    'values':
-      'converts to sql': ->
+    describe 'values', ->
+      it 'converts to sql', ->
         table = new Table 'users'
         manager = new InsertManager()
         manager.into table
@@ -92,8 +87,8 @@ tests = vows.describe('Inserting stuff').addBatch
         manager.values(new Nodes.Values([1]))
         assert.equal manager.toSql(), 'INSERT INTO "users" VALUES (1)'
 
-    'combo':
-      'puts shit together': ->
+    describe 'combo', ->
+      it 'puts shit together', ->
         table = new Table 'users'
         manager = new InsertManager()
         manager.into table
@@ -103,13 +98,3 @@ tests = vows.describe('Inserting stuff').addBatch
         manager.columns().push table.column('name')
 
         assert.equal manager.toSql(), 'INSERT INTO "users" ("id", "name") VALUES (1, \'carl\')'
-
-
-
-
-    
-
-
-
-
-tests.export module

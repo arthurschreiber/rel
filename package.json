@@ -42,7 +42,7 @@
   "licenses": [],
   "repository": "https://github.com/cjwoodward/rel",
   "dependencies": {
-    "date-utils": "0.1.8",
+    "date-utils": "^1.2.16",
     "underscore": "1.1.6"
   },
   "engines": {
@@ -53,10 +53,12 @@
     "lib": "lib"
   },
   "scripts": {
-    "prepublish": "rm -rf lib && coffee --bare -o lib -c src"
+    "prepublish": "node_modules/.bin/coffee --bare -o lib -c src",
+    "test": "node_modules/.bin/mocha test/**/*-test.coffee"
   },
   "devDependencies": {
-    "coffee-script": "^1.7.1",
-    "vows": "git+https://github.com/snoble/vows.git#1e8fa11fdb2f67eac285cbcbcf6485eec131fa02"
+    "coffee-script": "^1.8.0",
+    "chai": "^1.9.2",
+    "mocha": "^2.0.1"
   }
 }
