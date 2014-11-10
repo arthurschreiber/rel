@@ -590,7 +590,7 @@ describe 'Querying stuff', ->
           CASE "users"."protection"
           WHEN 'private' THEN true
           WHEN 'public' THEN false
-          END AS "private"
+          END AS private
           FROM "users"
           """.replace(/\s+/g, ' ').trim()
 

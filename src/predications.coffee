@@ -6,8 +6,7 @@ Nodes = require './nodes'
 
 u.extend module.exports,
   as: (other) ->
-    lit = new Nodes.UnqualifiedColumn(other)
-    new Nodes.As @, lit
+    new Nodes.As @, new Nodes.SqlLiteral(other)
     
   notEq: (other) ->
     new Nodes.NotEqual @, other

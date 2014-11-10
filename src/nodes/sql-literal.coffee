@@ -8,7 +8,6 @@ class SqlLiteral
 
   constructor: (@value) ->
 
-  toString: ->
-    @value
+  toString: -> "" + @value
 
 exports = module.exports = SqlLiteral
