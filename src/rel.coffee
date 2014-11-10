@@ -1,10 +1,10 @@
-Nodes = require './lib/nodes/nodes'
-Range = require './lib/range'
-Table = require './lib/table'
-SelectManager = require './lib/select-manager'
-InsertManager = require './lib/select-manager'
-UpdateManager = require './lib/select-manager'
-CaseBuilder = require './lib/nodes/case-builder'
+Nodes = require './nodes/nodes'
+Range = require './range'
+Table = require './table'
+SelectManager = require './select-manager'
+InsertManager = require './select-manager'
+UpdateManager = require './select-manager'
+CaseBuilder = require './nodes/case-builder'
 
 Rel =
   VERSION: '0.0.1'

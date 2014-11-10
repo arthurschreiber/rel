@@ -48,7 +48,7 @@
   "engines": {
     "node": ">=0.4.5"
   },
-  "main": "rel",
+  "main": "./lib/rel.js",
   "directories": {
     "lib": "lib"
   },
