@@ -1,11 +1,11 @@
 assert = require('chai').assert
 
-Table = require '../lib/table'
-SelectManager = require '../lib/select-manager'
-InsertManager = require '../lib/insert-manager'
-TreeManager = require '../lib/tree-manager'
-SqlLiteral = require('../lib/nodes/sql-literal')
-Nodes = require '../lib/nodes'
+Table = require '../src/table'
+SelectManager = require '../src/select-manager'
+InsertManager = require '../src/insert-manager'
+TreeManager = require '../src/tree-manager'
+SqlLiteral = require('../src/nodes/sql-literal')
+Nodes = require '../src/nodes'
 
 describe 'Table', ->
   beforeEach ->

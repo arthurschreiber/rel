@@ -1,6 +1,6 @@
 assert = require('chai').assert
 
-Rel = require '../../rel'
+Rel = require '../../src/rel'
 
 describe 'Rel.Visitors.ToSql', ->
   beforeEach ->

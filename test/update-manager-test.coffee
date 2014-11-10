@@ -1,10 +1,10 @@
 assert = require('chai').assert
 
-UpdateManager = require '../lib/update-manager'
-Table = require '../lib/table'
-SqlLiteral = require('../lib/nodes/sql-literal')
-Rel = require('../rel')
-Nodes = require '../lib/nodes'
+UpdateManager = require '../src/update-manager'
+Table = require '../src/table'
+SqlLiteral = require('../src/nodes/sql-literal')
+Rel = require('../src/rel')
+Nodes = require '../src/nodes'
 
 describe 'UpdateManager', ->
   it.skip 'should not quote sql literals', ->

@@ -1,11 +1,11 @@
 assert = require('chai').assert
 
 Rel =
-  Nodes: require '../../lib/nodes'
-  Table: require '../../lib/table'
-  SelectManager: require '../../lib/select-manager'
+  Nodes: require '../../src/nodes'
+  Table: require '../../src/table'
+  SelectManager: require '../../src/select-manager'
   Visitors:
-    ToSql: require '../../lib/visitors/to-sql'
+    ToSql: require '../../src/visitors/to-sql'
 
 describe.skip 'Rel.Collectors.Bind', ->
   beforeEach ->

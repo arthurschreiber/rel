@@ -42,21 +42,22 @@
   "licenses": [],
   "repository": "https://github.com/cjwoodward/rel",
   "dependencies": {
-    "coffee-script": "^1.8.0",
     "date-utils": "^1.2.16",
     "underscore": "1.1.6"
   },
   "engines": {
     "node": ">=0.4.5"
   },
-  "main": "rel",
+  "main": "./lib/rel.js",
   "directories": {
     "lib": "lib"
   },
   "scripts": {
+    "prepublish": "coffee --bare -o lib -c src",
     "test": "mocha test/**/*-test.coffee"
   },
   "devDependencies": {
+    "coffee-script": "^1.8.0",
     "chai": "^1.9.2",
     "mocha": "^2.0.1"
   }

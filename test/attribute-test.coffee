@@ -1,6 +1,6 @@
 assert = require('chai').assert
 
-Rel = require '../rel'
+Rel = require '../src/rel'
 { Table, Nodes } = Rel
 
 describe 'Attribute', ->

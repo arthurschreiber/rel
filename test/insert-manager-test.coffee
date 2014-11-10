@@ -1,11 +1,11 @@
 assert = require('chai').assert
 
-SelectManager = require '../lib/select-manager'
-InsertManager = require '../lib/insert-manager'
-Table = require '../lib/table'
-SqlLiteral = require('../lib/nodes/sql-literal')
-Rel = require('../rel')
-Nodes = require '../lib/nodes'
+SelectManager = require '../src/select-manager'
+InsertManager = require '../src/insert-manager'
+Table = require '../src/table'
+SqlLiteral = require('../src/nodes/sql-literal')
+Rel = require('../src/rel')
+Nodes = require '../src/nodes'
 
 describe 'Inserting stuff', ->
   describe 'An insert manager', ->

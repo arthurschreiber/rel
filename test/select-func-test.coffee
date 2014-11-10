@@ -1,4 +1,4 @@
-Rel = require '../rel'
+Rel = require '../src/rel'
 assert = require('chai').assert
 
 describe 'A sum function', ->
