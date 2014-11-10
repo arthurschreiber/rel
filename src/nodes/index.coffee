@@ -15,6 +15,7 @@ u.extend module.exports,
   Binary: require './binary'
   And: require './and'
   ConstLit: ConstLit
+  JoinSource: require './join-source'
   Join: require './join'
   InnerJoin: require './inner-join'
   OuterJoin: require './outer-join'

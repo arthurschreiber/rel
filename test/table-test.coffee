@@ -3,7 +3,9 @@ assert = require('chai').assert
 Table = require '../src/table'
 SelectManager = require '../src/select-manager'
 InsertManager = require '../src/insert-manager'
+UpdateManager = require '../src/update-manager'
 TreeManager = require '../src/tree-manager'
+DeleteManager = require '../src/delete-manager'
 SqlLiteral = require('../src/nodes/sql-literal')
 Nodes = require '../src/nodes'
 
@@ -28,7 +30,7 @@ describe 'Table', ->
     assert.equal join.left, 'foo'
     assert.equal join.right, 'bar'
 
-  it.skip 'should create join nodes with a class (OuterJoin)', ->
+  it 'should create join nodes with a class (OuterJoin)', ->
     join = @relation.createJoin 'foo', 'bar', Nodes.OuterJoin
     assert.instanceOf join, Nodes.OuterJoin
     assert.equal join.left, 'foo'
@@ -59,19 +61,16 @@ describe 'Table', ->
     it 'should return an empty select manager', ->
       sm = @relation.selectManager()
       assert.instanceOf sm, SelectManager
-      assert.equal sm.toSql(), 'SELECT'
 
-  describe.skip 'updateManager', ->
+  describe 'updateManager', ->
     it 'should return an update manager', ->
       um = @relation.updateManager()
       assert.instanceOf um, UpdateManager
-      assert.equal um.toSql(), 'SELECT'
 
-  describe.skip 'deleteManager', ->
-    it 'should return an update manager', ->
+  describe 'deleteManager', ->
+    it 'should return a delete manager', ->
       dm = @relation.deleteManager()
       assert.instanceOf dm, DeleteManager
-      assert.equal dm.toSql(), 'SELECT'
 
   describe 'having', ->
     it 'adds a having clause', ->

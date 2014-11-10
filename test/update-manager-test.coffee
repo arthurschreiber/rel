@@ -59,7 +59,7 @@ describe 'UpdateManager', ->
       um = new UpdateManager()
       assert.strictEqual um.table(new Table('users')), um
 
-    it.skip 'generates an update statement with joins', ->
+    it 'generates an update statement with joins', ->
       um = new UpdateManager
 
       table = new Table('users')

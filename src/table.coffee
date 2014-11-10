@@ -54,6 +54,12 @@ class Table
   selectManager: ->
     new SelectManager()
 
+  updateManager: ->
+    new UpdateManager()
+
+  deleteManager: ->
+    new DeleteManager()
+
   having: (expr) ->
     @from(@).having expr
 

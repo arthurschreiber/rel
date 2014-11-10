@@ -102,25 +102,44 @@ class ToSql extends Visitor
       (@visit(o.lock) if o.lock?)
     ]).compact().join(' ')
 
+  maybeVisit: (thing) ->
+    if thing? && tmp = @visit(thing) then " #{tmp}" else ""
+
   visitRelNodesSelectCore: (o) ->
-    u([
-      "SELECT",
-      (@visit(o.top) if o.top?),
-      ("#{(o.projections.map (x) => @visit(x)).join(', ')}"),
-      (@visit(o.source)),
-      ("WHERE #{(o.wheres.map (x) => @visit(x)).join ' AND ' }" unless u(o.wheres).isEmpty()),
-      ("GROUP BY #{(o.groups.map (x) => @visit(x)).join ', ' }" unless u(o.groups).isEmpty()),
-      (@visit(o.having) if o.having?)
-    ]).compact().join(' ')
+    collector = "SELECT"
+
+    collector += @maybeVisit(o.top)
+    collector += @maybeVisit(o.setQuantifier)
+
+    if o.projections?.length
+      collector += " "
+      collector += u.map(o.projections, (x) => @visit(x)).join(', ')
+
+    if !o.source.isEmpty()
+      collector += " FROM "
+      collector += @visit(o.source)
+
+    if o.wheres?.length
+      collector += " WHERE "
+      collector += u.map(o.wheres, (x) => @visit(x)).join(' AND ')
+
+    if o.groups?.length
+      collector += " GROUP BY "
+      collector += u.map(o.groups, (x) => @visit(x)).join(', ')
+
+    collector += @maybeVisit(o.having)
+
+    collector
 
   visitRelNodesJoinSource: (o) ->
-    return unless o.left? || !u(o.right).isEmpty()
+    out = ""
+    out += "#{@visit o.left}" if o.left?
 
-    u([
-      "FROM",
-      (@visit(o.left) if o.left?),
-      ((o.right.map (j) => @visit(j)).join(' ') if o.right?)
-    ]).compact().join ' '
+    if o.right?.length
+      out += " " if o.left?
+      out += u.map(o.right, (expr) => @visit(expr)).join(" ")
+
+    out
 
   visitRelNodesTable: (o) ->
     if o.tableAlias?
@@ -243,7 +262,10 @@ class ToSql extends Visitor
     "#{@visit o.left} OR #{@visit o.right}"
 
   visitRelNodesInnerJoin: (o) ->
-    "INNER JOIN #{@visit o.left} #{@visit o.right if o.right? and u(o.right).any()}"
+    collector = "INNER JOIN #{@visit o.left}"
+    if o.right?
+      collector += " #{@visit o.right}"
+    collector
 
   visitRelNodesOn: (o) ->
     "ON #{@visit o.expr}"
