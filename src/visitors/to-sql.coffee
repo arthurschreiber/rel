@@ -64,7 +64,7 @@ class ToSql extends Visitor
     right = @quote(o.right, @columnFor(o.left))
     "#{@visit o.left} = #{right}"
 
-  visitRelNodesUnqualifiedName: (o) ->
+  visitRelNodesUnqualifiedColumn: (o) ->
     @quoteColumnName o.name() # TODO This probably shouldn't be a function.
 
   visitRelNodesInsertStatement: (o) ->
@@ -337,7 +337,7 @@ class ToSql extends Visitor
 
   _visitOuterJoin: (o, joinType) ->
     "#{joinType} OUTER JOIN #{@visit o.left} #{@visit o.right}"
-  visitRelNodesLeftOuterJoin: (o) -> @_visitOuterJoin(o, 'LEFT')
+  visitRelNodesOuterJoin: (o) -> @_visitOuterJoin(o, 'LEFT')
   visitRelNodesRightOuterJoin: (o) -> @_visitOuterJoin(o, 'RIGHT')
   visitRelNodesFullOuterJoin: (o) -> @_visitOuterJoin(o, 'FULL')
 

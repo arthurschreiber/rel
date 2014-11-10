@@ -33,7 +33,7 @@ class SelectManager extends TreeManager
           @ctx.source.right.push table
         when Nodes.InnerJoin
           @ctx.source.right.push table
-        when Nodes.LeftOuterJoin
+        when Nodes.OuterJoin
           @ctx.source.right.push table
         when Nodes.RightOuterJoin
           @ctx.source.right.push table

@@ -1,11 +1,9 @@
 u = require 'underscore'
 
-Node = require './node'
+Binary = require './node'
 
-class DeleteStatement extends Node
-  constructor: (@relation=null, @wheres=[]) ->
-    super()
-    @left = @relation
-    @right = @wheres
+class DeleteStatement extends Binary
+  constructor: (@relation, @wheres = []) ->
+    super(@relation, @wheres)
 
 exports = module.exports = DeleteStatement

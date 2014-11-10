@@ -61,9 +61,9 @@ describe 'Querying stuff', ->
           .project(new Nodes.As(1, new Nodes.SqlLiteral('x')))
         assert.equal select.toSql(), 'SELECT 1 AS x'
 
-      it 'supports UnqualifiedName', ->
+      it 'supports UnqualifiedColumn', ->
         select = Rel.select()
-          .project(new Nodes.As(1, new Nodes.UnqualifiedName('x')))
+          .project(new Nodes.As(1, new Nodes.UnqualifiedColumn('x')))
         assert.equal select.toSql(), 'SELECT 1 AS "x"'
 
     describe 'from', ->
@@ -337,8 +337,8 @@ describe 'Querying stuff', ->
 
       it 'it should create JOIN nodes with a class', ->
         relation = new SelectManager()
-        join = relation.createJoin 'foo', 'bar', Nodes.LeftOuterJoin
-        assert.equal join.constructor, Nodes.LeftOuterJoin
+        join = relation.createJoin 'foo', 'bar', Nodes.OuterJoin
+        assert.equal join.constructor, Nodes.OuterJoin
         assert.equal 'foo', join.left
         assert.equal 'bar', join.right
 
@@ -362,7 +362,7 @@ describe 'Querying stuff', ->
         manager = new SelectManager()
 
         manager.from left
-        manager.join(right, Nodes.LeftOuterJoin).on(predicate)
+        manager.join(right, Nodes.OuterJoin).on(predicate)
         assert.equal manager.toSql(), 'SELECT FROM "users" LEFT OUTER JOIN "users" "users_2" ON "users"."id" = "users_2"."id"'
 
       it 'it noops on null', ->
@@ -381,7 +381,7 @@ describe 'Querying stuff', ->
         table = new Table 'users'
         alias = table.alias()
         manager = new SelectManager()
-        manager.from(new Nodes.LeftOuterJoin(alias, table.column('id').eq(alias.column('id'))))
+        manager.from(new Nodes.OuterJoin(alias, table.column('id').eq(alias.column('id'))))
         assert.equal manager.joinSql().toString(), 'LEFT OUTER JOIN "users" "users_2" "users"."id" = "users_2"."id"'
 
       it 'return string join sql', ->
@@ -531,10 +531,10 @@ describe 'Querying stuff', ->
 
     describe 'subqueries', ->
       it 'work in from', ->
-        a = Rel.select().project(new Nodes.As(1, new Nodes.UnqualifiedName('x'))).as('a')
-        b = Rel.select().project(new Nodes.As(1, new Nodes.UnqualifiedName('x'))).as('b')
+        a = Rel.select().project(new Nodes.As(1, new Nodes.UnqualifiedColumn('x'))).as('a')
+        b = Rel.select().project(new Nodes.As(1, new Nodes.UnqualifiedColumn('x'))).as('b')
         q = Rel.select()
-          .from(a).join(b, Nodes.LeftOuterJoin)
+          .from(a).join(b, Nodes.OuterJoin)
           .on(a.column('x').eq(b.column('x')))
           .project(Rel.star())
         assert.equal q.toSql(),

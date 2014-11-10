@@ -6,7 +6,7 @@ Nodes = require './nodes'
 
 u.extend module.exports,
   as: (other) ->
-    lit = new Nodes.UnqualifiedName(other)
+    lit = new Nodes.UnqualifiedColumn(other)
     new Nodes.As @, lit
     
   notEq: (other) ->

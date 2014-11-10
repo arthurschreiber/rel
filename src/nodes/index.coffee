@@ -1,72 +1,54 @@
 u = require 'underscore'
 
 Binary = require './binary'
-Count = require './count'
-SelectStatement = require('./select-statement')
-SqlLiteral = require('./sql-literal')
-SelectCore = require('./select-core')
 Unary = require './unary'
-TableAlias = require './table-alias'
-And = require './and'
-FunctionNode = require './function-node'
-Attribute = require '../attribute'
-InsertStatement = require './insert-statement'
 ConstLit = require './const-lit'
 
 u.extend module.exports,
   True: require './true'
   False: require './false'
 
-  SelectStatement: SelectStatement
-  InsertStatement: InsertStatement
-  SqlLiteral: SqlLiteral
-  SelectCore: SelectCore
-  Binary: Binary
-  TableAlias: TableAlias
-  And: And
+  SelectStatement: require './select-statement'
+  InsertStatement: require './insert-statement'
+  SqlLiteral: require('./sql-literal')
+  SelectCore: require('./select-core')
+  Binary: require './binary'
+  And: require './and'
   ConstLit: ConstLit
-  Join: class Join extends Binary
-  InnerJoin: class InnerJoin extends Join
-  LeftOuterJoin: class LeftOuterJoin extends Join
-  RightOuterJoin: class RightOuterJoin extends Join
-  FullOuterJoin: class FullOuterJoin extends Join
-  StringJoin: class StringJoin extends Join
-    constructor: (left, right=null) ->
-      super left, right
-  TableAlias: class TableAlias extends Binary
-    constructor: (@left, @right) ->
-      super(@left, @right)
-      @name = @right
-      @relation = @left
-      @tableAlias = @name
-      @tableName = @relation.name
-    column: (name) ->
-      new Attribute(@, name)
-  FunctionNode: FunctionNode
-  Count: Count
-  Sum: class Sum extends FunctionNode
-  Exists: class Exists extends FunctionNode
-  Max: class Max extends FunctionNode
-  Min: class Min extends FunctionNode
-  Avg: class Avg extends FunctionNode
-  As: class As extends Binary
-  Assignment: class Assignment extends Binary
-  Between: class Between extends Binary
+  Join: require './join'
+  InnerJoin: require './inner-join'
+  OuterJoin: require './outer-join'
+  RightOuterJoin: require './right-outer-join'
+  FullOuterJoin: require './full-outer-join'
+  StringJoin: require './string-join'
+  TableAlias: require './table-alias'
+  FunctionNode: require './function-node'
+  Count: require './count'
+  Sum: require './sum'
+  Exists: require './exists'
+  Max: require './max'
+  Min: require './min'
+  Avg: require './avg'
+  As: require './as'
+  Assignment: require './assignment'
+  Between: require './between'
   Matches: require './matches'
   DoesNotMatch: require './does-not-match'
-  GreaterThan: class GreaterThan extends Binary
-  GreaterThanOrEqual: class GreaterThanOrEqual extends Binary
+  GreaterThan: require './greater-than'
+  GreaterThanOrEqual: require './greater-than-or-equal'
   Like: class Like extends Binary
   ILike: class ILike extends Binary
-  LessThan: class LessThan extends Binary
-  LessThanOrEqual: class LessThanOrEqual extends Binary
-  NotEqual: class NotEqual extends Binary
-  NotIn: class NotIn extends Binary
-  Or: class Or extends Binary
-  Union: class Union extends Binary
-  UnionAll: class UnionAll extends Binary
-  Intersect: class Intersect extends Binary
-  Except: class Except extends Binary
+  LessThan: require './less-than'
+  LessThanOrEqual: require './less-than-or-equal'
+  NotEqual: require './not-equal'
+  NotIn: require './not-in'
+  NotRegexp: require './not-regexp'
+  Or: require './or'
+  Regexp: require './regexp'
+  Union: require './union'
+  UnionAll: require './union-all'
+  Intersect: require './intersect'
+  Except: require './except'
   Ordering: require './ordering'
   Ascending: require './ascending'
   Descending: require './descending'
@@ -74,7 +56,7 @@ u.extend module.exports,
   NotNull: class NotNull extends Unary
   Bin: class Bin extends Unary
   Group: class Group extends Unary
-  Grouping: class Grouping extends Unary
+  Grouping: require './grouping'
   Having: class Having extends Unary
   Limit: class Limit extends Unary
   Not: class Not extends Unary
@@ -82,45 +64,11 @@ u.extend module.exports,
   On: class On extends Unary
   Top: class Top extends Unary
   Lock: class Lock extends Unary
-  Equality: class Equality extends Binary
-    constructor: (@left, @right) ->
-      super @left, @right
-      @operator = '=='
-      @operand1 = @left
-      @operand2 = @right
-  In: class In extends Equality
-  With: class With extends Unary
-    constructor: (@expr) ->
-      @children = @expr
-  WithRecursive: class WithRecursive extends With
+  Equality: require './equality'
+  In: require './in'
+  With: require './with'
+  WithRecursive: require './with-recursive'
   TableStar: class TableStar extends Unary
-  Values: class Values extends Binary
-    constructor: (exprs, columns=[]) ->
-      super exprs, columns
-
-    expressions: (e=null) ->
-      if e?
-        @left = e
-      else
-        @left
-
-    columns: (c=null) ->
-      if c?
-        @right = c
-      else
-        @right
-  UnqualifiedName: class UnqualifiedName extends Unary
-    attribute: (attr) ->
-      if attr?
-        @expr = attr
-      else
-        @expr
-
-    relation: ->
-      @expr.relation
-
-    column: ->
-      @expr.column
-
-    name: ->
-      @expr
+  Unary: require './unary'
+  Values: require './values'
+  UnqualifiedColumn: require './unqualified-column'

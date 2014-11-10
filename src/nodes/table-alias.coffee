@@ -1,19 +1,15 @@
-# TODO this can be deleted.
 Attribute = require '../attribute'
+Binary = require './binary'
 
-class TableAlias
+class TableAlias extends Binary
   constructor: (@left, @right) ->
+    super(@left, @right)
+    @name = @right
+    @relation = @left
+    @tableAlias = @name
+    @tableName = @relation.name
 
-  name: ->
-    @right
+  column: (name) ->
+    new Attribute(@, name)
 
-  relation: ->
-    @left
-
-  tableAlias: ->
-    @relation().name
-
-  tableName: ->
-    @relation().name
-
-exports = module.exports = TableAlias
+module.exports = TableAlias
