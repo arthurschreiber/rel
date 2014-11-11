@@ -1,11 +1,14 @@
 assert = require('chai').assert
 
+FakeEngine = require '../support/fake-engine'
+
 Rel = require '../../src/rel'
 
 describe 'Rel.Visitors.MSSQL', ->
   beforeEach ->
-    @visitor = new Rel.Visitors.MSSQL
-    @table = new Rel.Table "users"
+    @engine = new FakeEngine()
+    @visitor = new Rel.Visitors.MSSQL(@engine)
+    @table = new Rel.Table("users", @engine)
 
     @compile = (node) =>
       collector = new Rel.Collectors.SQLString

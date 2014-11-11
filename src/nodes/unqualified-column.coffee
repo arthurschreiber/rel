@@ -14,6 +14,6 @@ class UnqualifiedColumn extends Unary
     @expr.column
 
   name: ->
-    @expr
+    @expr.name
 
 module.exports = UnqualifiedColumn

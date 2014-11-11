@@ -19,8 +19,6 @@ Rel =
   range: (start, finish) ->
     new Range(start, finish)
 
-  lit: (value) -> new Nodes.ConstLit(value)
-
   Nodes: Nodes
 
   Table: Table
@@ -29,10 +27,8 @@ Rel =
 
   Collectors: require './collectors'
 
-  table: (args...) -> new Table(args...)
-  select: -> new SelectManager()
-  insert: -> new InsertManager()
-  update: -> new UpdateManager()
-  case: (args...) -> new CaseBuilder(args...)
+  SelectManager: SelectManager
+  InsertManager: InsertManager
+  UpdateManager: UpdateManager
 
 exports = module.exports = Rel

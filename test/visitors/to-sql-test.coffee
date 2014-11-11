@@ -1,11 +1,14 @@
 assert = require('chai').assert
 
+FakeEngine = require '../support/fake-engine'
+
 Rel = require '../../src/rel'
 
 describe 'Rel.Visitors.ToSql', ->
   beforeEach ->
-    @visitor = new Rel.Visitors.ToSql
-    @table = new Rel.Table('users')
+    @engine = new FakeEngine()
+    @visitor = new Rel.Visitors.ToSql(@engine)
+    @table = new Rel.Table('users', @engine)
     @attr = @table.column('id')
 
     @compile = (node) =>

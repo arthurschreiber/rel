@@ -5,8 +5,8 @@ DeleteStatement = require './nodes/delete-statement'
 Nodes = require './nodes'
 
 class DeleteManager extends TreeManager
-  constructor: ->
-    super()
+  constructor: (engine) ->
+    super(engine)
     @ast = new DeleteStatement()
     @ctx = @ast
 

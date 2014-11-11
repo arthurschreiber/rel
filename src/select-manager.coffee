@@ -6,8 +6,8 @@ Visitors = require './visitors'
 Predications = require './predications'
 
 class SelectManager extends TreeManager
-  constructor: (table) ->
-    super()
+  constructor: (engine, table) ->
+    super(engine)
     @ast = new Nodes.SelectStatement()
     @ctx = u(@ast.cores).last()
     @from table

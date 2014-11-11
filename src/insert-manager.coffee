@@ -5,8 +5,8 @@ InsertStatement = require './nodes/insert-statement'
 Nodes = require './nodes'
 
 class InsertManager extends TreeManager
-  constructor: ->
-    super()
+  constructor: (engine) ->
+    super(engine)
     @ast = new InsertStatement()
 
   createValues: (values, columns) ->

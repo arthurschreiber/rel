@@ -5,8 +5,8 @@ UpdateStatement = require './nodes/update-statement'
 Nodes = require './nodes'
 
 class UpdateManager extends TreeManager
-  constructor: ->
-    super()
+  constructor: (engine) ->
+    super(engine)
     @ast = new UpdateStatement()
     @ctx = @ast
 

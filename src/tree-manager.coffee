@@ -7,9 +7,9 @@ Collectors = require './collectors'
 class TreeManager
   u.extend(@prototype, FactoryMethods)
 
-  constructor: ->
+  constructor: (@engine) ->
     # TODO need to implement engines with a factory.
-    @visitor = Visitors.visitor()
+    @visitor = @engine.visitor()
     @ast = null
     @ctx = null
 

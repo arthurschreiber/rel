@@ -4,9 +4,11 @@ Reduce = require './reduce'
 Nodes = require '../nodes'
 SqlLiteral = require '../nodes/sql-literal'
 Attributes = require '../attributes'
-require 'date-utils'
 
-class ToSql extends Reduce  
+class ToSql extends Reduce
+  constructor: (@engine) ->
+    super()
+
   visitRelNodesDeleteStatement: (o, collector) ->
     collector.append "DELETE FROM "
     @visit o.relation, collector
@@ -48,7 +50,7 @@ class ToSql extends Reduce
 
     if o.columns?.length
       collector.append " ("
-      collector.append u.map(o.columns, (x) => @quoteColumnName(x)).join(', ')
+      collector.append u.map(o.columns, (x) => @quoteColumnName(x.name)).join(', ')
       collector.append ")"
 
     if o.values
@@ -77,11 +79,15 @@ class ToSql extends Reduce
 
   # TODO implement table exists
   tableExists: (name) ->
-    false
+    return unless name?
 
-  # TODO this is silly because we aren't checking against the connection.
   columnFor: (attr) ->
-    attr.name.toString()
+    return unless attr?
+
+    name = attr.name.toString()
+    table = attr.relation.tableName
+
+    @engine.columnFor(table, name)
 
   visitRelNodesValues: (o, collector) ->
     collector.append "VALUES ("
@@ -450,27 +456,22 @@ class ToSql extends Reduce
     @injectJoin o, collector, ', '
 
   quote: (value, column=null) ->
-    if value == null
-      'NULL'
-    else if value.constructor == Boolean
-      if value == true then "'t'" else "'f'"
-    else if value.constructor == Date
-      @quote(value.toDBString())
-    else if value.constructor == Number
+    if value?.constructor == Nodes.SqlLiteral
       value
     else
-      "\"#{value}\""
+      @engine.quote(value, column)
 
   quoteTableName: (name) ->
-    if Nodes.SqlLiteral == name.constructor then name else "\"#{name}\""
+    if name?.constructor == Nodes.SqlLiteral
+      name
+    else
+      @engine.quoteTableName(name)
 
   quoteColumnName: (name) ->
-    if Nodes.SqlLiteral == name.constructor 
+    if name?.constructor == Nodes.SqlLiteral
       name
-    else if Attributes.Attribute == name.constructor
-      "\"#{name.name}\""
     else
-      "\"#{name}\""
+      @engine.quoteColumnName(name)
 
   maybeVisit: (thing, collector) ->
     if thing?

@@ -13,9 +13,11 @@ class Node
     new Nodes.And([@, right])
     
   # TODO Implement each and toSql
-  toSql: ->
+  toSql: (engine) ->
+    throw new Error("Node#toSql: missing engine") unless engine?
+
     collector = new Collectors.SQLString
-    Visitors.visitor().accept @, collector
+    engine.visitor().accept @, collector
     collector.value
   
 exports = module.exports = Node

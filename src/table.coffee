@@ -13,14 +13,14 @@ class Table
   u.extend(@prototype, FactoryMethods, Crud)
 
   # TODO I think table alias does nothing.
-  constructor: (@name, opts={}) ->
+  constructor: (@name, @engine, opts = {}) ->
     @columns = null
     @aliases = []
     @tableAlias = null
     @tableAlias = opts['as'] if opts['as']?
 
   from: (table) ->
-    new SelectManager(table)
+    new SelectManager(@engine, table)
 
   project: (things...) ->
     @from(@).project things...
@@ -46,19 +46,19 @@ class Table
     @from(@).join(relation, klass)
 
   insertManager: ->
-    new InsertManager()
+    new InsertManager(@engine)
 
   skip: (amount) ->
     @from(@).skip amount
 
   selectManager: ->
-    new SelectManager()
+    new SelectManager(@engine)
 
   updateManager: ->
-    new UpdateManager()
+    new UpdateManager(@engine)
 
   deleteManager: ->
-    new DeleteManager()
+    new DeleteManager(@engine)
 
   having: (expr) ->
     @from(@).having expr

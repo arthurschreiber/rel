@@ -1,5 +1,7 @@
 assert = require('chai').assert
 
+FakeEngine = require './support/fake-engine'
+
 UpdateManager = require '../src/update-manager'
 Table = require '../src/table'
 SqlLiteral = require('../src/nodes/sql-literal')
@@ -7,16 +9,19 @@ Rel = require('../src/rel')
 Nodes = require '../src/nodes'
 
 describe 'UpdateManager', ->
+  beforeEach ->
+    @engine = new FakeEngine
+
   it 'should not quote sql literals', ->
     table = new Table('users')
-    um = new UpdateManager
+    um = new UpdateManager(@engine)
     um.table table
     um.set [[table.column('name'), new Nodes.BindParam('?')]]
     assert.equal um.toSql(), 'UPDATE "users" SET "name" = ?'
 
   it.skip 'handles limit properly', ->
     table = new Table 'users'
-    um = new UpdateManager()
+    um = new UpdateManager(@engine)
     um.take 10
     um.table table
     um.set [[table.column('name'), null]]
@@ -25,42 +30,42 @@ describe 'UpdateManager', ->
   describe 'set', ->
     it 'updates with null', ->
       table = new Table 'users'
-      um = new UpdateManager()
+      um = new UpdateManager(@engine)
       um.table table
       um.set [[table.column('name'), null]]
       assert.equal um.toSql(), 'UPDATE "users" SET "name" = NULL'
 
     it 'takes a string', ->
       table = new Table 'users'
-      um = new UpdateManager()
+      um = new UpdateManager(@engine)
       um.table table
       um.set new Nodes.SqlLiteral("foo = bar")
       assert.equal um.toSql(), 'UPDATE "users" SET foo = bar'
 
     it 'takes a list of lists', ->
       table = new Table 'users'
-      um = new UpdateManager()
+      um = new UpdateManager(@engine)
       um.table table
       um.set [[table.column('id'), 1], [table.column('name'), 'hello']]
       assert.equal um.toSql(), 'UPDATE "users" SET "id" = 1, "name" = \'hello\''
 
     it 'chains', ->
       table = new Table 'users'
-      um = new UpdateManager()
+      um = new UpdateManager(@engine)
       assert.strictEqual um.set([[table.column('id'), 1], [table.column('name'), 'hello']]), um
 
   describe 'table', ->
     it 'generates an update statement', ->
-      um = new UpdateManager()
+      um = new UpdateManager(@engine)
       um.table(new Table('users'))
       assert.equal um.toSql(), 'UPDATE "users"'
 
     it 'chains', ->
-      um = new UpdateManager()
+      um = new UpdateManager(@engine)
       assert.strictEqual um.table(new Table('users')), um
 
     it 'generates an update statement with joins', ->
-      um = new UpdateManager
+      um = new UpdateManager(@engine)
 
       table = new Table('users')
       joinSource = new Nodes.JoinSource(
@@ -74,13 +79,13 @@ describe 'UpdateManager', ->
   describe 'where', ->
     it 'generates a where clause', ->
       table = new Table 'users'
-      um = new UpdateManager()
+      um = new UpdateManager(@engine)
       um.table table
       um.where table.column('id').eq(1)
       assert.equal um.toSql(), 'UPDATE "users" WHERE "users"."id" = 1'
 
     it 'chains', ->
       table = new Table 'users'
-      um = new UpdateManager()
+      um = new UpdateManager(@engine)
       um.table table
       assert.strictEqual um.where(table.column('id').eq(1)), um

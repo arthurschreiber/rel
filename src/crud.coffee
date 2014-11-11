@@ -11,16 +11,16 @@ u.extend module.exports,
     im
 
   createInsert: ->
-    new InsertManager()
+    new InsertManager(@engine)
 
   compileDelete: ->
-    dm = new DeleteManager()
+    dm = new DeleteManager(@engine)
     dm.wheres @ctx.wheres
     dm.from @ctx.froms
     dm
 
   compileUpdate: (values) ->
-    um = new UpdateManager()
+    um = new UpdateManager(@engine)
 
     relation = if values.constructor == SqlLiteral
       @ctx.from

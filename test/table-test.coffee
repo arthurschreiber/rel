@@ -1,5 +1,7 @@
 assert = require('chai').assert
 
+FakeEngine = require './support/fake-engine'
+
 Table = require '../src/table'
 SelectManager = require '../src/select-manager'
 InsertManager = require '../src/insert-manager'
@@ -11,7 +13,8 @@ Nodes = require '../src/nodes'
 
 describe 'Table', ->
   beforeEach ->
-    @relation = new Table('users')
+    @engine = new FakeEngine
+    @relation = new Table('users', @engine)
 
   it 'should create string join nodes', ->
     join = @relation.createStringJoin('foo')
@@ -45,7 +48,7 @@ describe 'Table', ->
   it 'should return an insert manager', ->
     im = @relation.compileInsert 'VALUES(NULL)'
     assert.instanceOf im, InsertManager
-    im.into new Table('users')
+    im.into new Table('users', @engine)
     assert.equal im.toSql(), 'INSERT INTO "users" VALUES(NULL)'
 
   it 'should return IM from insertManager', ->
@@ -96,11 +99,11 @@ describe 'Table', ->
 
   describe 'new', ->
     it 'should accept a hash', ->
-      rel = new Table 'users', as: 'foo'
+      rel = new Table 'users', @engine, as: 'foo'
       assert.equal rel.tableAlias, 'foo'
 
     it.skip 'ignores as if it equals name', ->
-      rel = new Table 'users', as: 'users'
+      rel = new Table 'users', @engine, as: 'users'
       assert.isNull rel.tableAlias
 
 
