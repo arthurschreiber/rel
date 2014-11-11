@@ -7,7 +7,7 @@ class SQLString
     @
 
   addBind: (bv) ->
-    @append(bind)
+    @append(bv)
 
   compile: (bvs) ->
     @value

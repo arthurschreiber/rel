@@ -417,7 +417,8 @@ class ToSql extends Reduce
   literal: (o, collector) ->
     collector.append o
 
-  visitRelNodesBindParam: (o, collector) -> @literal(o, collector) # TODO Collect bind var
+  visitRelNodesBindParam: (o, collector) ->
+    collector.addBind(o)
 
   visitRelNodesSqlLiteral: (o, collector) -> @literal(o, collector)
 
