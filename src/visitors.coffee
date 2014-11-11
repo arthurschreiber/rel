@@ -3,6 +3,7 @@ u = require 'underscore'
 Dot = require './visitors/dot'
 Postgresql = require './visitors/postgresql'
 ToSql = require './visitors/to-sql'
+MSSQL = require './visitors/mssql'
 
 u.extend module.exports,
   Dot: Dot
@@ -10,6 +11,7 @@ u.extend module.exports,
     # TODO figure out a factory way of returning the
     new Postgresql()
   ToSql: ToSql
+  MSSQL: MSSQL
   JoinSql:
     visitRelNodesSelectCore: (o) ->
       (o.source.right.map (j) => @visit(j)).join ' '
