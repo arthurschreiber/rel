@@ -85,7 +85,7 @@ class ToSql extends Reduce
     return unless attr?
 
     name = attr.name.toString()
-    table = attr.relation.tableName
+    table = attr.relation.name
 
     @engine.columnFor(table, name)
 
