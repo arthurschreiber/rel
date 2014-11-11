@@ -408,7 +408,7 @@ class ToSql extends Reduce
       @visit o.right, collector
 
   visitRelNodesUnqualifiedColumn: (o, collector) ->
-    collector.append @quoteColumnName o.name() # TODO This probably shouldn't be a function.
+    collector.append @quoteColumnName o.name
 
   visitRelNodesAttribute: (o, collector) ->
     joinName = (o.relation.tableAlias || o.relation.name).toString()

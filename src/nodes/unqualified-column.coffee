@@ -7,13 +7,16 @@ class UnqualifiedColumn extends Unary
     else
       @expr
 
-  relation: ->
-    @expr.relation
+  Object.defineProperty @prototype, 'relation',
+    get: ->
+      @expr.relation
 
-  column: ->
-    @expr.column
+  Object.defineProperty @prototype, 'column',
+    get: ->
+      @expr.column
 
-  name: ->
-    @expr.name
+  Object.defineProperty @prototype, 'name',
+    get: ->
+      @expr.name
 
 module.exports = UnqualifiedColumn
