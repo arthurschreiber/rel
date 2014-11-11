@@ -3,8 +3,8 @@ Range = require './range'
 Table = require './table'
 Visitors = require './visitors'
 SelectManager = require './select-manager'
-InsertManager = require './select-manager'
-UpdateManager = require './select-manager'
+InsertManager = require './insert-manager'
+UpdateManager = require './update-manager'
 CaseBuilder = require './nodes/case-builder'
 
 Rel =
