@@ -524,8 +524,6 @@ class ToSql extends Reduce
     @visit o.right, collector
 
   visitRelNodesFunctionNode: (o, collector) ->
-    console.log(o, o.constructor.name)
-
     @visit o.alias, collector
     collector.append "("
     @visit(x, collector) for x in o.expressions
