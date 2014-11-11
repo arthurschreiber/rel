@@ -1,54 +1,19 @@
 u = require 'underscore'
-Visitor = require './visitor'
+
+Reduce = require './reduce'
 Nodes = require '../nodes'
 SqlLiteral = require '../nodes/sql-literal'
 Attributes = require '../attributes'
 require 'date-utils'
 
-class ToSql extends Visitor
-  constructor: ->
-    @connection = null
-    @pool = null
-    @lastColumn = null
+class ToSql extends Reduce  
+  visitRelNodesDeleteStatement: (o, collector) ->
+    collector.append "DELETE FROM "
+    @visit o.relation, collector
 
-  accept: (object) ->
-    @last_column = null
-    @pool = null # TODO need to build out engines.
-    if @pool?
-      @pool.withConnection (conn) =>
-        @connection = conn
-    super object
-  
-  visitRelNodesDeleteStatement: (o) ->
-    u([
-      "DELETE FROM #{@visit o.relation}", 
-      ("WHERE #{(u(o.wheres).map (x) => @visit(x)).join 'AND '}" unless u(o.wheres).isEmpty())
-    ]).compact().join(' ')
-
-  visitRelNodesSelectManager: (o) ->
-    "(#{@visit o.ast})"
-
-  buildSubSelect: (key, o) ->
-    stmt = new Nodes.SelectStatement
-    core = u(stmt.cores).first()
-    core.froms = o.relation
-    core.wheres = o.wheres
-    core.projections = [key]
-    stmt.limit = o.limit
-    stmt.orders = o.orders
-    stmt
-
-  visitRelNodesUpdateStatement: (o) ->
-    wheres = if u(o.orders).isEmpty() and !o.limit?
-      o.wheres
-    else
-      key = o.key
-      [new Nodes.In(key, [@buildSubselect(key, o)])]
-    u([
-      "UPDATE #{@visit o.relation}",
-      ("SET #{(o.values.map (value) => @visit value).join ', '}" unless u(o.values).isEmpty()),
-      ("WHERE #{(wheres.map (x) => @visit x).join ' AND '}" unless u(o.wheres).isEmpty())
-    ]).compact().join(' ')
+    if o.wheres?.length
+      collector.append " WHERE "
+      @injectJoin o.wheres, collector, " AND "
 
   buildSubselect: (key, o) ->
     stmt = new Nodes.SelectStatement()
@@ -60,178 +25,428 @@ class ToSql extends Visitor
     stmt.orders = o.orders
     stmt
 
-  visitRelNodesAssignment: (o) ->
-    right = @quote(o.right, @columnFor(o.left))
-    "#{@visit o.left} = #{right}"
+  visitRelNodesUpdateStatement: (o, collector) ->
+    wheres = if !u.orders?.length && !o.limit?
+      o.wheres
+    else
+      [ new Nodes.In(o.key, [@buildSubselect(o.key, o)]) ]
+    
+    collector.append "UPDATE "
+    @visit o.relation, collector
 
-  visitRelNodesUnqualifiedColumn: (o) ->
-    @quoteColumnName o.name() # TODO This probably shouldn't be a function.
+    if o.values?.length
+      collector.append " SET "
+      @injectJoin o.values, collector, ", "
 
-  visitRelNodesInsertStatement: (o) ->
-    u([
-      "INSERT INTO #{if o.relation? then @visit o.relation else 'NULL'}",
-      ("(#{(u(o.columns).map (x) => @quoteColumnName(x)).join ', '})" unless u(o.columns).isEmpty()),
-      (@visit o.values if o.values?)
-    ]).compact().join(' ')
+    if wheres?.length
+      collector.append " WHERE "
+      @injectJoin wheres, collector, " AND "
 
-  visitRelNodesValues: (o) ->
-    "VALUES (#{(u(o.expressions()).map (expr) =>
-      if expr == null
-        @quote expr, null
-      else if expr.constructor == SqlLiteral
-        @visitRelNodesSqlLiteral expr
-      else
-        @quote(expr, null)
-    ).join ', '})"
+  visitRelNodesInsertStatement: (o, collector) ->
+    collector.append "INSERT INTO "
+    @visit o.relation, collector
 
+    if o.columns?.length
+      collector.append " ("
+      collector.append u.map(o.columns, (x) => @quoteColumnName(x)).join(', ')
+      collector.append ")"
 
-  visitRelNodesExist: (o) ->
-    "EXISTS (#{@visit o.expressions})#{if o.alias then " AS #{visit o.alias}" else ''}"
+    if o.values
+      collector.append " "
+      @visit o.values, collector
+    else if o.select
+      collector.append " "
+      @visit o.select, collector
+
+  visitRelNodesExists: (o, collector) ->
+    collector.append "EXISTS ("
+    @visit o.expressions, collector
+    collector.append ")"
+
+    if o.alias
+      collector.append " AS "
+      @visit o.alias, collector
+
+  # visitRelNodesCasted: (o, collector) ->
+
+  # visitRelNodesQuoted: (o, collector) ->
+
+  # visitRelNodesTrue: (o, collector) ->
+
+  # visitRelNodesFalse: (o, collector) ->
 
   # TODO implement table exists
   tableExists: (name) ->
     false
 
-  visitRelNodesSelectStatement: (o) ->
-    u([
-      (@visit(o.with) if o.with?),
-      ((o.cores.map (x) => @visitRelNodesSelectCore(x)).join()),
-      ("ORDER BY #{(o.orders.map (x) => @visit(x)).join(', ')}" unless u(o.orders).isEmpty()),
-      (@visit(o.limit) if o.limit?),
-      (@visit(o.offset) if o.offset?),
-      (@visit(o.lock) if o.lock?)
-    ]).compact().join(' ')
+  # TODO this is silly because we aren't checking against the connection.
+  columnFor: (attr) ->
+    attr.name.toString()
 
-  maybeVisit: (thing) ->
-    if thing? && tmp = @visit(thing) then " #{tmp}" else ""
+  visitRelNodesValues: (o, collector) ->
+    collector.append "VALUES ("
 
-  visitRelNodesSelectCore: (o) ->
-    collector = "SELECT"
+    expressions = o.expressions()
+    last = expressions.length - 1
 
-    collector += @maybeVisit(o.top)
-    collector += @maybeVisit(o.setQuantifier)
+    for expr, i in expressions
+      if expr == null
+        collector.append @quote(expr, null)
+      else if expr.constructor == SqlLiteral
+        @visit expr, collector
+      else
+        collector.append @quote(expr, null)
+
+      collector.append ", " unless i == last
+
+    collector.append ")"
+
+  visitRelNodesSelectStatement: (o, collector) ->
+    if o.with?
+      @visit o.with, collector
+      collector.append " "
+
+    for core in o.cores
+      @visit core, collector
+
+    if o.orders?.length
+      collector.append " ORDER BY "
+      @injectJoin o.orders, collector, ", "
+
+    @maybeVisit o.limit, collector
+    @maybeVisit o.offset, collector
+    @maybeVisit o.lock, collector
+
+  visitRelNodesSelectCore: (o, collector) ->
+    collector.append "SELECT"
+
+    @maybeVisit(o.top, collector)
+    @maybeVisit(o.setQuantifier, collector)
 
     if o.projections?.length
-      collector += " "
-      collector += u.map(o.projections, (x) => @visit(x)).join(', ')
+      collector.append " "
+      @injectJoin o.projections, collector, ', '
 
     if !o.source.isEmpty()
-      collector += " FROM "
-      collector += @visit(o.source)
+      collector.append " FROM "
+      @visit(o.source, collector)
 
     if o.wheres?.length
-      collector += " WHERE "
-      collector += u.map(o.wheres, (x) => @visit(x)).join(' AND ')
+      collector.append " WHERE "
+      @injectJoin o.wheres, collector, " AND "
 
     if o.groups?.length
-      collector += " GROUP BY "
-      collector += u.map(o.groups, (x) => @visit(x)).join(', ')
+      collector.append " GROUP BY "
+      @injectJoin o.groups, collector, ", "
 
-    collector += @maybeVisit(o.having)
+    @maybeVisit(o.having, collector)
 
-    collector
+  # visitRelNodesBin: (o, collector) ->
 
-  visitRelNodesJoinSource: (o) ->
-    out = ""
-    out += "#{@visit o.left}" if o.left?
+  # visitRelNodesDistinct: (o, collector) ->
+
+  # visitRelNodesDistinctOn: (o, collector) ->
+
+  visitRelNodesWith: (o, collector) ->
+    collector.append "WITH "
+    @injectJoin o.children, collector, ', '
+
+  visitRelNodesWithRecursive: (o, collector) ->
+    collector.append "WITH RECURSIVE "
+    @injectJoin o.children, collector, ', '
+
+  visitRelNodesUnion: (o, collector) ->
+    collector.append "("
+    @visit o.left, collector
+    collector.append " UNION "
+    @visit o.right, collector
+    collector.append ")"
+
+  visitRelNodesUnionAll: (o, collector) ->
+    collector.append "("
+    @visit o.left, collector
+    collector.append " UNION ALL "
+    @visit o.right, collector
+    collector.append ")"
+
+  visitRelNodesIntersect: (o, collector) ->
+    collector.append "("
+    @visit o.left, collector
+    collector.append " INTERSECT "
+    @visit o.right, collector
+    collector.append ")"
+
+  visitRelNodesExcept: (o, collector) ->
+    collector.append "("
+    @visit o.left, collector
+    collector.append " EXCEPT "
+    @visit o.right, collector
+    collector.append ")"
+
+  # visitRelNodesNamedWindow: (o, collector) ->
+
+  # visitRelNodesWindow: (o, collector) ->
+
+  # visitRelNodesRows: (o, collector) ->
+
+  # visitRelNodesRange: (o, collector) ->
+
+  # visitRelNodesPreceding: (o, collector) ->
+
+  # visitRelNodesFollowing: (o, collector) ->
+
+  # visitRelNodesCurrentRow: (o, collector) ->
+
+  # visitRelNodesOver: (o, collector) ->
+
+  visitRelNodesHaving: (o, collector) ->
+    collector.append "HAVING "
+    @visit o.expr, collector
+
+  visitRelNodesOffset: (o, collector) ->
+    collector.append "OFFSET "
+    @visit o.expr, collector
+
+  visitRelNodesLimit: (o, collector) ->
+    collector.append "LIMIT "
+    @visit o.expr, collector
+
+  visitRelNodesTop: (o, collector) ->
+    # Do nothing
+
+  visitRelNodesLock: (o, collector) ->
+    @visit o.expr, collector
+
+  visitRelNodesGrouping: (o, collector) ->
+    if o.expr instanceof Nodes.Grouping
+      @visit o.expr, collector
+    else
+      collector.append "("
+      @visit o.expr, collector
+      collector.append ")"
+
+  visitRelNodesSelectManager: (o, collector) ->
+    collector.append "("
+    @visit o.ast, collector
+    collector.append ")"
+
+  visitRelNodesAscending: (o, collector) ->
+    @visit o.expr, collector
+    collector.append " ASC"
+
+  visitRelNodesDescending: (o, collector) ->
+    @visit o.expr, collector
+    collector.append " DESC"
+
+  visitRelNodesGroup: (o, collector) ->
+    @visit o.expr, collector
+
+  visitRelNodesNamedFunction: (o, collector) ->
+    @aggregate(o.name, o, collector)
+
+  # visitRelNodesExtract: (o, collector) ->
+
+  visitRelNodesCount: (o, collector) ->
+    @aggregate "COUNT", o, collector
+
+  visitRelNodesSum: (o, collector) ->
+    @aggregate "SUM", o, collector
+
+  visitRelNodesMax: (o, collector) ->
+    @aggregate "MAX", o, collector
+
+  visitRelNodesMin: (o, collector) ->
+    @aggregate "MIN", o, collector
+
+  visitRelNodesAvg: (o, collector) ->
+    @aggregate "AVG", o, collector
+
+  visitRelNodesTableAlias: (o, collector) ->
+    @visit o.relation, collector
+    collector.append " #{@quoteTableName o.name.toString()}"
+
+  visitRelNodesBetween: (o, collector) ->
+    @visit o.left, collector
+    collector.append " BETWEEN "
+    @visit o.right, collector
+
+  visitRelNodesGreaterThan: (o, collector) ->
+    @visit o.left, collector
+    collector.append " > "
+    @visit o.right, collector
+
+  visitRelNodesGreaterThanOrEqual: (o, collector) ->
+    @visit o.left, collector
+    collector.append " >= "
+    @visit o.right, collector
+
+  visitRelNodesLessThan: (o, collector) ->
+    @visit o.left, collector
+    collector.append " < "
+    @visit o.right, collector
+
+  visitRelNodesLessThanOrEqual: (o, collector) ->
+    @visit o.left, collector
+    collector.append " <= "
+    @visit o.right, collector
+
+  visitRelNodesMatches: (o, collector) ->
+    @visit o.left, collector
+    collector.append " LIKE "
+    @visit o.right, collector
+
+  visitRelNodesDoesNotMatch: (o, collector) ->
+    @visit o.left, collector
+    collector.append " NOT LIKE "
+    @visit o.right, collector
+
+  visitRelNodesJoinSource: (o, collector) ->
+    @visit o.left, collector if o.left?
 
     if o.right?.length
-      out += " " if o.left?
-      out += u.map(o.right, (expr) => @visit(expr)).join(" ")
+      collector.append " " if o.left?
+      @injectJoin o.right, collector, " "
 
-    out
+  # visitRelNodesRegexp: (o, collector) ->
 
-  visitRelNodesTable: (o) ->
-    if o.tableAlias?
+  # visitRelNodesNotRegexp: (o, collector) ->
+
+  visitRelNodesStringJoin: (o, collector) ->
+    @visit o.left, collector
+
+  visitRelNodesFullOuterJoin: (o, collector) -> @_visitOuterJoin(o, collector, 'FULL')
+
+  visitRelNodesOuterJoin: (o, collector) -> @_visitOuterJoin(o, collector, 'LEFT')
+
+  visitRelNodesRightOuterJoin: (o, collector) -> @_visitOuterJoin(o, collector, 'RIGHT')
+
+  visitRelNodesInnerJoin: (o, collector) ->
+    collector.append "INNER JOIN "
+    @visit o.left, collector
+
+    if o.right?
+      collector.append " "
+      @visit o.right, collector
+
+  visitRelNodesOn: (o, collector) ->
+    collector.append "ON "
+    @visit o.expr, collector
+
+  visitRelNodesNot: (o, collector) ->
+    collector.append "NOT ("
+    @visit o.expr, collector
+    collector.append ")"
+
+  visitRelNodesTable: (o, collector) ->
+    collector.append if o.tableAlias?
       "#{@quoteTableName o.name} #{quoteTableName o.tableAlias}"
     else
       @quoteTableName o.name
 
-  quoteTableName: (name) ->
-    if Nodes.SqlLiteral == name.constructor then name else "\"#{name}\""
-
-  quoteColumnName: (name) ->
-    if Nodes.SqlLiteral == name.constructor 
-      name
-    else if Attributes.Attribute == name.constructor
-      "\"#{name.name}\""
+  visitRelNodesIn: (o, collector) ->
+    if u.isArray(o.right) && !o.right.length
+      collector.append "1=0"
     else
-      "\"#{name}\""
+      @visit o.left, collector
+      collector.append " IN ("
+      @visit o.right, collector
+      collector.append ")"
 
-  visitRelNodesArray: (o) ->
-    if u(o).empty? then 'NULL' else (o.map (x) => @visit(x)).join(', ')
+  visitRelNodesNotIn: (o, collector) ->
+    if u.isArray(o.right) && !o.right.length
+      collector.append "1=1"
+    else
+      @visit o.left, collector
+      collector.append " NOT IN ("
+      @visit o.right, collector
+      collector.append ")"
 
-  literal: (o) ->
-    o
+  visitRelNodesAnd: (o, collector) ->
+    @injectJoin o.children, collector, ' AND '
 
-  visitRelNodesBindParam: (o) -> @literal(o) # TODO Collect bind var
+  visitRelNodesOr: (o, collector) ->
+    @visit o.left, collector
+    collector.append " OR "
+    @visit o.right, collector
 
-  visitRelNodesSqlLiteral: (o) -> @literal(o)
+  visitRelNodesAssignment: (o, collector) ->
+    if o.right?.constructor in [Nodes.UnqualifiedColumn, Attributes.Attribute, Nodes.BindParam]
+      @visit o.left, collector
+      collector.append " = "
+      @visit o.right, collector
+    else
+      @visit o.left, collector
+      collector.append " = #{@quote(o.right, @columnFor(o.left))}"
 
-  visitRelNodesDescending: (o) ->
-    "#{@visit o.expr} DESC"
+  visitRelNodesEquality: (o, collector) ->
+    if o.right?
+      @visit o.left, collector
+      collector.append " = "
+      @visit o.right, collector
+    else
+      @visit o.left, collector
+      collector.append " IS NULL"
 
-  visitRelNodesAscending: (o) ->
-    "#{@visit o.expr} ASC"
+  visitRelNodesNotEqual: (o, collector) ->
+    if o.right?
+      @visit o.left, collector
+      collector.append " != "
+      @visit o.right, collector
+    else
+      @visit o.left, collector
+      collector.append " IS NOT NULL"
 
-  visitRelNodesGroup: (o) ->
-    @visit o.expr
+  visitRelNodesAs: (o, collector) ->
+      @visit o.left, collector
+      collector.append " AS "
+      @visit o.right, collector
 
-  visitRelNodesNamedFunction: (o) ->
-    @aggregate(o.name, o)
+  visitRelNodesUnqualifiedColumn: (o, collector) ->
+    collector.append @quoteColumnName o.name() # TODO This probably shouldn't be a function.
 
-  aggregate: (name, o) ->
-    out = "#{name}("
-
-    out += 'DISTINCT ' if o.distinct
-    out += u.map(o.expressions, (expr) =>
-      @visit(expr)
-    ).join(", ")
-    out += " AS #{@visit o.alias}" if o.alias
-    out += ')'
-
-    out
-
-  visitRelNodesCount: (o) ->
-    @aggregate "COUNT", o
-
-  visitRelNodesSum: (o) ->
-    @aggregate "SUM", o
-
-  visitRelNodesMax: (o) ->
-    @aggregate "MAX", o
-
-  visitRelNodesMin: (o) ->
-    @aggregate "MIN", o
-
-  visitRelNodesAvg: (o) ->
-    @aggregate "AVG", o
-
-  visitRelNodesAttribute: (o) ->
-    @lastColumn = @columnFor o
+  visitRelNodesAttribute: (o, collector) ->
     joinName = (o.relation.tableAlias || o.relation.name).toString()
-    "#{@quoteTableName(joinName)}.#{@quoteColumnName(o.name)}"
+    collector.append "#{@quoteTableName(joinName)}.#{@quoteColumnName(o.name)}"
 
-  visitRelNodesTableStar: (o) ->
-    rel = o.expr
-    joinName = rel.tableAlias || rel.name
-    "#{@quoteTableName(joinName)}.*"
+  visitRelNodesAttrInteger: (o, collector) -> @visitRelNodesAttribute(o)
+  visitRelNodesAttrFloat: (o, collector) -> @visitRelNodesAttribute(o)
+  visitRelNodesAttrString: (o, collector) -> @visitRelNodesAttribute(o)
+  visitRelNodesAttrTime: (o, collector) -> @visitRelNodesAttribute(o)
+  visitRelNodesAttrBoolean: (o, collector) -> @visitRelNodesAttribute(o)
 
-  visitRelNodesAttrInteger: (o) -> @visitRelNodesAttribute(o)
-  visitRelNodesAttrFloat: (o) -> @visitRelNodesAttribute(o)
-  visitRelNodesAttrString: (o) -> @visitRelNodesAttribute(o)
-  visitRelNodesAttrTime: (o) -> @visitRelNodesAttribute(o)
-  visitRelNodesAttrBoolean: (o) -> @visitRelNodesAttribute(o)
+  literal: (o, collector) ->
+    collector.append o
+
+  visitRelNodesBindParam: (o, collector) -> @literal(o, collector) # TODO Collect bind var
+
+  visitRelNodesSqlLiteral: (o, collector) -> @literal(o, collector)
+
+  visitRelNodesNumber: (o, collector) -> @literal(o, collector)
 
   quoted: (o) ->
     @quote(o, @last_column)
 
-  visitRelNodesString: (o) -> @quoted(o)
-  visitRelNodesDate: (o) -> @quoted(o)
-  visitRelNodesBoolean: (o) -> @quoted(o)
-  visitRelNodesNumber: (o) -> @literal(o)
+  unsupported: (o, collector) ->
+    throw new Error "unsupported #{o}"
 
-  visitRelNodesConstLit: (o) -> @visit o.expr
+  visitRelNodesString: (o, collector) -> collector.append @quoted(o)
+  visitRelNodesDate: (o, collector) -> collector.append @quoted(o)
+  visitRelNodesBoolean: (o, collector) -> collector.append @quoted(o)
+
+  # visitRelNodesInfixOperation: (o, collector) ->
+
+  # visitRelNodesInfixOperation: (o, collector) ->
+
+  # visitRelNodesAddition: (o, collector) ->
+
+  # visitRelNodesSubstraction: (o, collector) ->
+
+  # visitRelNodesMultiplication: (o, collector) ->
+
+  # visitRelNodesDivision: (o, collector) ->
+
+  visitRelNodesArray: (o, collector) ->
+    @injectJoin o, collector, ', '
 
   quote: (value, column=null) ->
     if value == null
@@ -245,157 +460,105 @@ class ToSql extends Visitor
     else
       "\"#{value}\""
 
+  quoteTableName: (name) ->
+    if Nodes.SqlLiteral == name.constructor then name else "\"#{name}\""
 
-  # TODO this is silly because we aren't checking against the connection.
-  columnFor: (attr) ->
-    attr.name.toString()
+  quoteColumnName: (name) ->
+    if Nodes.SqlLiteral == name.constructor 
+      name
+    else if Attributes.Attribute == name.constructor
+      "\"#{name.name}\""
+    else
+      "\"#{name}\""
 
-  visitRelNodesHaving: (o) ->
-    "HAVING #{@visit o.expr}"
+  maybeVisit: (thing, collector) ->
+    if thing?
+      collector.append " "
+      @visit thing, collector
 
-  visitRelNodesAnd: (o) ->
-    (o.children.map (x) =>
-      @visit x
-    ).join ' AND '
+  injectJoin: (list, collector, joinStr) ->
+    last = list.length - 1
 
-  visitRelNodesOr: (o) ->
-    "#{@visit o.left} OR #{@visit o.right}"
+    for x, i in list
+      @visit(x, collector)
+      collector.append(joinStr) unless i == last
 
-  visitRelNodesInnerJoin: (o) ->
-    collector = "INNER JOIN #{@visit o.left}"
-    if o.right?
-      collector += " #{@visit o.right}"
     collector
 
-  visitRelNodesOn: (o) ->
-    "ON #{@visit o.expr}"
+  aggregate: (name, o, collector) ->
+    collector.append "#{name}("
 
-  visitRelNodesTableAlias: (o) ->
-    "#{@visit o.relation} #{@quoteTableName o.name.toString()}"
+    collector.append 'DISTINCT ' if o.distinct
+    @injectJoin o.expressions, collector, ", "
 
-  visitRelNodesOffset: (o) ->
-    "OFFSET #{@visit o.expr}"
+    if o.alias
+      collector.append " AS "
+      @visit o.alias, collector
 
-  visitRelNodesExists: (o) ->
-    e = if o.alias then " AS #{@visit o.alias}" else ''
-    "EXISTS (#{@visit o.expressions})#{e}"
+    collector.append ")"
 
-  visitRelNodesUnion: (o) ->
-    "(#{@visit o.left}) UNION (#{@visit o.right})"
+  # TODO: Review and Remove?
 
-  visitRelNodesLike: (o) ->
-    "#{@visit o.left} LIKE #{@visit o.right}"
+  visitRelNodesTableStar: (o, collector) ->
+    rel = o.expr
+    joinName = rel.tableAlias || rel.name
+    "#{@quoteTableName(joinName)}.*"
 
-  visitRelNodesILike: (o) ->
-    "#{@visit o.left} ILIKE #{@visit o.right}"
+  visitRelNodesConstLit: (o, collector) ->
+    @visit o.expr, collector
 
-  visitRelNodesLessThan: (o) ->
-    "#{@visit o.left} < #{@visit o.right}"
+  visitRelNodesLike: (o, collector) ->
+    @visit o.left, collector
+    collector.append " LIKE "
+    @visit o.right, collector
 
-  visitRelNodesLessThanOrEqual: (o) ->
-    "#{@visit o.left} <= #{@visit o.right}"
+  visitRelNodesILike: (o, collector) ->
+    @visit o.left, collector
+    collector.append " ILIKE "
+    @visit o.right, collector
 
-  visitRelNodesGreaterThan: (o) ->
-    "#{@visit o.left} > #{@visit o.right}"
+  _visitOuterJoin: (o, collector, joinType) ->
+    collector.append "#{joinType} OUTER JOIN "
+    @visit o.left, collector
+    collector.append " "
+    @visit o.right, collector
 
-  visitRelNodesGreaterThanOrEqual: (o) ->
-    "#{@visit o.left} >= #{@visit o.right}"
+  visitRelNodesFunctionNode: (o, collector) ->
+    console.log(o, o.constructor.name)
 
-  visitRelNodesNotEqual: (o) ->
-    if o.right == null
-      "#{@visit o.left} IS NOT NULL"
-    else
-      "#{@visit o.left} != #{@visit(o.right)}"
+    @visit o.alias, collector
+    collector.append "("
+    @visit(x, collector) for x in o.expressions
+    collector.append ")"
 
-  visitRelNodesMatches: (o) ->
-    "#{@visit o.left} LIKE #{@visit o.right}"
+  visitRelNodesCase: (o, collector) ->
+    collector.append "CASE"
 
-  visitRelNodesDoesNotMatch: (o) ->
-    "#{@visit o.left} NOT LIKE #{@visit o.right}"
+    if o._base != undefined
+      collector.append " "
+      @visit o._base, collector
 
-  visitRelNodesNot: (o) ->
-    "NOT (#{@visit o.expr})"
+    for [cond, res] in o._cases
+      collector.append " WHEN "
+      @visit cond, collector
+      collector.append " THEN "
+      @visit res, collector
 
-  visitRelNodesUnionAll: (o) ->
-    "(#{@visit o.left}) UNION ALL (#{@visit o.right})"
+    if o._else != undefined
+      collector.append " ELSE "
+      @visit o._else, collector
 
-  visitRelNodesExcept: (o) ->
-    "(#{@visit o.left}) EXCEPT (#{@visit o.right})"
+    collector.append " END"
 
-  visitRelNodesIn: (o) ->
-    if u.isArray(o.right) && !o.right.length
-      "1=0"
-    else
-      "#{@visit o.left} IN (#{@visit o.right})"
+  visitRelNodesNull: (o, collector) ->
+    collector.append 'NULL'
 
-  visitRelNodesNotIn: (o) ->
-    if u.isArray(o.right) && !o.right.length
-      "1=1"
-    else
-      "#{@visit o.left} NOT IN (#{@visit o.right})"
+  visitRelNodesIsNull: (o, collector) ->
+    @visit o.expr, collector
+    collector.append " IS NULL"
 
-  visitRelNodesBetween: (o) ->
-    "#{@visit o.left} BETWEEN (#{@visit o.right})"
-
-  visitRelNodesIntersect: (o) ->
-    "(#{@visit o.left}) INTERSECT (#{@visit o.right})"
-
-  _withHelper: (rec, o) ->
-    "WITH#{rec} #{
-      ("#{@visit x.left} AS (#{@visit x.right})" for x in o.children).join(', ')
-    }"
-
-  visitRelNodesWith: (o) -> @_withHelper('', o)
-
-  visitRelNodesWithRecursive: (o) -> @_withHelper(' RECURSIVE', o)
-
-  visitRelNodesAs: (o) ->
-    "#{@visit o.left} AS #{@visit o.right}"
-
-  visitRelNodesEquality: (o) ->
-    right = o.right
-
-    if right?
-      "#{@visit o.left} = #{@visit right}"
-    else
-      "#{@visit o.left} IS NULL"
-
-  visitRelNodesLock: (o) ->
-
-  _visitOuterJoin: (o, joinType) ->
-    "#{joinType} OUTER JOIN #{@visit o.left} #{@visit o.right}"
-  visitRelNodesOuterJoin: (o) -> @_visitOuterJoin(o, 'LEFT')
-  visitRelNodesRightOuterJoin: (o) -> @_visitOuterJoin(o, 'RIGHT')
-  visitRelNodesFullOuterJoin: (o) -> @_visitOuterJoin(o, 'FULL')
-
-  visitRelNodesStringJoin: (o) ->
-    @visit o.left
-
-  visitRelNodesTop: (o) ->
-    ""
-
-  visitRelNodesLimit: (o) ->
-    "LIMIT #{@visit o.expr}"
-
-  visitRelNodesGrouping: (o) ->
-    "(#{@visit o.expr})"
-
-  visitRelNodesFunctionNode: (o) ->
-    "#{@visit o.alias}(#{(@visit(x) for x in o.expressions)})"
-
-  visitRelNodesCase: (o) ->
-    u([
-      'CASE'
-      @visit o._base if o._base != undefined
-      for [cond, res] in o._cases
-        "WHEN #{@visit cond} THEN #{@visit res}"
-      "ELSE #{@visit o._else}" if o._else != undefined
-      'END'
-    ]).chain().flatten().compact().value().join(' ')
-
-  visitRelNodesNull: -> 'NULL'
-  visitRelNodesIsNull: (o) ->
-    "#{@visit o.expr} IS NULL"
-  visitRelNodesNotNull: (o) -> "#{@visit o.expr} IS NOT NULL"
+  visitRelNodesNotNull: (o, collector) ->
+    @visit o.expr, collector
+    collector.append " IS NOT NULL"
 
 exports = module.exports = ToSql

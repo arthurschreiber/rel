@@ -1,9 +1,11 @@
-class Visitor
+Visitor = require './visitor'
+
+class Reduce extends Visitor
   accept: (object, collector) ->
     @visit object, collector
 
   visit: (object, collector) ->
     type = object?.constructor.name ? 'Null'
-    @["visitRelNodes#{type}"](object)
+    @["visitRelNodes#{type}"](object, collector)
 
-exports = module.exports = Visitor
+module.exports = Reduce

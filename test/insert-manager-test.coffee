@@ -18,10 +18,10 @@ describe 'Inserting stuff', ->
       assert.equal values.right.length, ['c', 'd'].length
 
     it 'allows sql literals', ->
-      table = new Table 'users'
       manager = new InsertManager()
+      manager.into new Table 'users'
       manager.values(manager.createValues [Rel.star()], ['a'])
-      assert.equal manager.toSql(), 'INSERT INTO NULL VALUES (*)'
+      assert.equal manager.toSql(), 'INSERT INTO "users" VALUES (*)'
 
     it 'inserts false', ->
       table = new Table 'users'

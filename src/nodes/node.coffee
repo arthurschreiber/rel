@@ -1,5 +1,6 @@
 Nodes = require './index'
 Visitors = require '../visitors'
+Collectors = require '../collectors'
 
 class Node
   not: ->
@@ -13,6 +14,8 @@ class Node
     
   # TODO Implement each and toSql
   toSql: ->
-    Visitors.visitor().accept @
+    collector = new Collectors.SQLString
+    Visitors.visitor().accept @, collector
+    collector.value
   
 exports = module.exports = Node

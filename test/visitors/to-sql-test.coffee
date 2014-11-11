@@ -8,8 +8,8 @@ describe 'Rel.Visitors.ToSql', ->
     @table = new Rel.Table('users')
     @attr = @table.column('id')
 
-    @compile = (node) ->
-      @visitor.accept(node)
+    @compile = (node) =>
+      @visitor.accept(node, new Rel.Collectors.SQLString).value
 
   it 'works with BindParams', ->
     node = new Rel.Nodes.BindParam('?')
@@ -17,7 +17,7 @@ describe 'Rel.Visitors.ToSql', ->
     assert.equal(sql, '?')
 
   it 'should not quote sql literals', ->
-    node = @table.star()
+    node = @table.column(Rel.star())
     sql = @compile(node)
     assert.equal(sql, '"users".*')
 

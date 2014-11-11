@@ -7,7 +7,7 @@ Rel = require('../src/rel')
 Nodes = require '../src/nodes'
 
 describe 'UpdateManager', ->
-  it.skip 'should not quote sql literals', ->
+  it 'should not quote sql literals', ->
     table = new Table('users')
     um = new UpdateManager
     um.table table

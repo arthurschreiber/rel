@@ -113,7 +113,7 @@ describe 'Table', ->
     it 'should add a limit', ->
       mgr = @relation.take 1
       mgr.project new SqlLiteral('*')
-      assert.equal mgr.toSql(), 'SELECT * FROM "users" LIMIT 1'
+      assert.equal mgr.toSql(), 'SELECT  * FROM "users" LIMIT 1'
 
   describe 'project', ->
     it 'can project', ->

@@ -6,15 +6,17 @@ Rel =
   SelectManager: require '../../src/select-manager'
   Visitors:
     ToSql: require '../../src/visitors/to-sql'
+  Collectors: require '../../src/collectors'
 
 describe.skip 'Rel.Collectors.SQLString', ->
   beforeEach ->
     @visitor = new Rel.Visitors.ToSql
+    @collector = new Rel.Collectors.SQLString
 
-    @collect = (node) ->
-      @visitor.accept(node, new Rel.Collectors.SQLString)
+    @collect = (node) =>
+      @visitor.accept(node, @collector)
 
-    @compile = (node) ->
+    @compile = (node) =>
       @collect(node).value
 
     @astWithBinds = (bv) ->
@@ -26,7 +28,7 @@ describe.skip 'Rel.Collectors.SQLString', ->
 
   it 'should compile', ->
     bv = new Rel.Nodes.BindParam('?')
-    collector = @collect(@ast_with_binds(bv))
+    @collect(@astWithBinds(bv))
 
-    sql = collector.compile(["hello", "world"])
+    sql = @collector.compile(["hello", "world"])
     assert.equal sql, 'SELECT FROM "users" WHERE "users"."age" = ? AND "users"."name" = ?'

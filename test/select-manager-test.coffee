@@ -133,6 +133,7 @@ describe 'Querying stuff', ->
         m2 = new SelectManager
         m2.project mgr.exists()
         assert.equal m2.toSql(), "SELECT EXISTS (#{mgr.toSql()})"
+
       it 'can be aliased', ->
         table = new Table 'users'
         mgr = new SelectManager table
@@ -159,14 +160,14 @@ describe 'Querying stuff', ->
         m2 = @topics[1]
         node = m1.union m2
         assert.equal node.toSql(), 
-          '(SELECT * FROM "users" WHERE "users"."age" < 18) UNION (SELECT * FROM "users" WHERE "users"."age" > 99)'
+          '(SELECT * FROM "users" WHERE "users"."age" < 18 UNION SELECT * FROM "users" WHERE "users"."age" > 99)'
 
       it 'should union two managers', ->
         m1 = @topics[0] 
         m2 = @topics[1]
         node = m1.union 'all', m2
         assert.equal node.toSql(), 
-          '(SELECT * FROM "users" WHERE "users"."age" < 18) UNION ALL (SELECT * FROM "users" WHERE "users"."age" > 99)'
+          '(SELECT * FROM "users" WHERE "users"."age" < 18 UNION ALL SELECT * FROM "users" WHERE "users"."age" > 99)'
 
     describe 'except', ->
       beforeEach ->
@@ -186,7 +187,7 @@ describe 'Querying stuff', ->
         m2 = @topics[1]
         node = m1.except m2
         assert.equal node.toSql(), 
-          '(SELECT * FROM "users" WHERE "users"."age" BETWEEN (18 AND 60)) EXCEPT (SELECT * FROM "users" WHERE "users"."age" BETWEEN (40 AND 99))'
+          '(SELECT * FROM "users" WHERE "users"."age" BETWEEN 18 AND 60 EXCEPT SELECT * FROM "users" WHERE "users"."age" BETWEEN 40 AND 99)'
 
     describe 'intersect', ->
       beforeEach ->
@@ -207,7 +208,7 @@ describe 'Querying stuff', ->
         node = m1.intersect m2
 
         assert.equal node.toSql(),
-          '(SELECT * FROM "users" WHERE "users"."age" > 18) INTERSECT (SELECT * FROM "users" WHERE "users"."age" < 99)'
+          '(SELECT * FROM "users" WHERE "users"."age" > 18 INTERSECT SELECT * FROM "users" WHERE "users"."age" < 99)'
 
     describe 'with', ->
       it 'should support WITH RECURSIVE', ->
@@ -231,15 +232,14 @@ describe 'Querying stuff', ->
         manager = new SelectManager()
         manager.with('recursive', asStatement).from(replies).project(Rel.star())
 
-        string = 'WITH RECURSIVE "replies" AS ((SELECT "comments"."id", "comments"."parent_id" FROM "comments" WHERE "comments"."id" = 42) UNION (SELECT "comments"."id", "comments"."parent_id" FROM "comments" INNER JOIN "replies" ON "comments"."parent_id" = "replies"."id")) SELECT * FROM "replies"'
+        string = 'WITH RECURSIVE "replies" AS (SELECT "comments"."id", "comments"."parent_id" FROM "comments" WHERE "comments"."id" = 42 UNION SELECT "comments"."id", "comments"."parent_id" FROM "comments" INNER JOIN "replies" ON "comments"."parent_id" = "replies"."id") SELECT * FROM "replies"'
         assert.equal manager.toSql(), string
 
     describe 'ast', ->
       it 'it should return the ast', ->
         table = new Table 'users'
         mgr = table.from table
-        ast = mgr.ast
-        assert.equal mgr.visitor.accept(ast), mgr.toSql()
+        assert mgr.ast
 
     describe 'taken', ->
       it 'should return limit', ->
@@ -251,7 +251,7 @@ describe 'Querying stuff', ->
       it 'adds a lock', ->
         table = new Table 'users'
         mgr = table.from table
-        assert.equal mgr.lock().toSql(), 'SELECT FROM "users"'
+        assert.equal mgr.lock().toSql(), 'SELECT FROM "users" FOR UPDATE'
 
     describe 'orders', ->
       it 'returns order clauses', ->
@@ -375,32 +375,32 @@ describe 'Querying stuff', ->
         alias = table.alias()
         manager = new SelectManager()
         manager.from(new Nodes.InnerJoin(alias, table.column('id').eq(alias.column('id'))))
-        assert.equal manager.joinSql().toString(), 'INNER JOIN "users" "users_2" "users"."id" = "users_2"."id"'
+        assert.include manager.toSql(), 'INNER JOIN "users" "users_2" "users"."id" = "users_2"."id"'
 
       it 'returns outer join sql', ->
         table = new Table 'users'
         alias = table.alias()
         manager = new SelectManager()
         manager.from(new Nodes.OuterJoin(alias, table.column('id').eq(alias.column('id'))))
-        assert.equal manager.joinSql().toString(), 'LEFT OUTER JOIN "users" "users_2" "users"."id" = "users_2"."id"'
+        assert.include manager.toSql(), 'LEFT OUTER JOIN "users" "users_2" "users"."id" = "users_2"."id"'
 
       it 'return string join sql', ->
         table = new Table 'users'
         manager = new SelectManager()
         manager.from new Nodes.StringJoin('hello')
-        assert.equal manager.joinSql().toString(), "'hello'" # TODO not sure if this should get quoted. It isn't in ruby tests.
-
-      it 'returns nil join sql', ->
-        manager = new SelectManager()
-        assert.isNull manager.joinSql()
+        assert.include manager.toSql(), "'hello'" # TODO not sure if this should get quoted. It isn't in ruby tests.
 
     describe 'order clauses', ->
       it 'returns order clauses as a list', ->
         table = new Table('users')
         manager = new SelectManager()
         manager.from table
-        manager.order table.column('id')
-        assert.equal manager.orderClauses()[0], '"users"."id"'
+
+        order = table.column('id')
+        manager.order order
+
+        assert.lengthOf manager.orders(), 1
+        assert.strictEqual manager.orders()[0], order
 
     describe 'group', ->
       it 'takes an attribute', ->
@@ -437,12 +437,7 @@ describe 'Querying stuff', ->
         manager = new SelectManager()
         manager.from table
         manager.where table.column('id').eq(10)
-        assert.equal manager.whereSql(), 'WHERE "users"."id" = 10'
-      it 'returns null when there are no wheres', ->
-        table = new Table 'users'
-        manager = new SelectManager()
-        manager.from table
-        assert.equal manager.whereSql(), null
+        assert.include manager.toSql(), 'WHERE "users"."id" = 10'
 
     # TODO Implement Update
 
@@ -470,7 +465,7 @@ describe 'Querying stuff', ->
         manager.where(table.column('id').eq(1))
         manager.take 1
 
-        assert.equal manager.toSql(), 'SELECT "users"."id" FROM "users" WHERE "users"."id" = 1 LIMIT 1'
+        assert.equal manager.toSql(), 'SELECT  "users"."id" FROM "users" WHERE "users"."id" = 1 LIMIT 1'
 
       it 'chains', ->
         manager = new SelectManager()

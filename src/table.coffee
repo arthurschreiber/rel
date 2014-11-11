@@ -75,6 +75,7 @@ class Table
   where: (condition) ->
     @from(@).where condition
 
-  star: -> new Nodes.TableStar(@)
+  star: ->
+    @column(new Nodes.SqlLiteral('*'))
 
 module.exports = Table

@@ -167,21 +167,4 @@ class SelectManager extends TreeManager
   locked: ->
     @ast.lock
 
-
-  joinSql: ->
-    return null if (@ctx.source.right == null or u(@ctx.source.right).isEmpty())
-
-    sql = u(u(@visitor).clone()).extend(Visitors.JoinSql).accept @ctx
-    new Nodes.SqlLiteral sql
-
-  orderClauses: ->
-    new Visitors.OrderClauses().accept(@ast).map (x) =>
-      new Nodes.SqlLiteral x
-
-  whereSql: ->
-    return if u(@ctx.wheres).isEmpty()
-
-    viz = new Visitors.WhereSql()
-    new Nodes.SqlLiteral(viz.accept(@ctx))
-
 exports = module.exports = SelectManager

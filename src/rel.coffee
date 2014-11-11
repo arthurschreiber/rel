@@ -30,6 +30,8 @@ Rel =
 
   Visitors: Visitors
 
+  Collectors: require './collectors'
+
   table: (args...) -> new Table(args...)
   select: -> new SelectManager()
   insert: -> new InsertManager()
