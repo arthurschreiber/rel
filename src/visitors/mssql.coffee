@@ -6,12 +6,13 @@ class RowNumber
 
 class MSSQL extends ToSql
   visitRelNodesRowNumber: (o, collector) ->
-    collector.append "ROW_NUMBER() OVER ("
+    collector.append "ROW_NUMBER() OVER (ORDER BY "
+
     if o.children?.length
-      collector.append "ORDER BY "
       @injectJoin o.children, collector, ", "
     else
-      collector.append "SELECT 0"
+      collector.append "(SELECT 0)"
+
     collector.append ") as _row_num"
 
   visitRelNodesSelectStatement: (o, collector) ->

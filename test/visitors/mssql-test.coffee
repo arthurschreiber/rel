@@ -21,7 +21,7 @@ describe 'Rel.Visitors.MSSQL', ->
     stmt.cores[0].from(@table)
     stmt.limit = new Rel.Nodes.Limit(10)
 
-    assert.equal @compile(stmt), "SELECT _t.* FROM (SELECT ROW_NUMBER() OVER (SELECT 0) as _row_num FROM \"users\") as _t WHERE _row_num BETWEEN 1 AND 10"
+    assert.equal @compile(stmt), "SELECT _t.* FROM (SELECT ROW_NUMBER() OVER (ORDER BY (SELECT 0)) as _row_num FROM \"users\") as _t WHERE _row_num BETWEEN 1 AND 10"
 
   it 'should go over query ORDER BY if .order()', ->
     stmt = new Rel.Nodes.SelectStatement
@@ -45,14 +45,14 @@ describe 'Rel.Visitors.MSSQL', ->
     stmt.limit = new Rel.Nodes.Limit(10)
     stmt.offset = new Rel.Nodes.Offset(20)
 
-    assert.equal @compile(stmt), "SELECT _t.* FROM (SELECT ROW_NUMBER() OVER (SELECT 0) as _row_num FROM \"users\") as _t WHERE _row_num BETWEEN 21 AND 30"
+    assert.equal @compile(stmt), "SELECT _t.* FROM (SELECT ROW_NUMBER() OVER (ORDER BY (SELECT 0)) as _row_num FROM \"users\") as _t WHERE _row_num BETWEEN 21 AND 30"
 
   it 'should use >= if only .offset', ->
     stmt = new Rel.Nodes.SelectStatement
     stmt.cores[0].from(@table)
     stmt.offset = new Rel.Nodes.Offset(20)
 
-    assert.equal @compile(stmt), "SELECT _t.* FROM (SELECT ROW_NUMBER() OVER (SELECT 0) as _row_num FROM \"users\") as _t WHERE _row_num >= 21"
+    assert.equal @compile(stmt), "SELECT _t.* FROM (SELECT ROW_NUMBER() OVER (ORDER BY (SELECT 0)) as _row_num FROM \"users\") as _t WHERE _row_num >= 21"
 
   it 'should generate subquery for .count', ->
     stmt = new Rel.Nodes.SelectStatement
@@ -60,4 +60,4 @@ describe 'Rel.Visitors.MSSQL', ->
     stmt.limit = new Rel.Nodes.Limit(10)
     stmt.cores[0].projections.push(new Rel.Nodes.Count('*'))
 
-    assert.equal @compile(stmt), "SELECT COUNT(1) as count_id FROM (SELECT _t.* FROM (SELECT ROW_NUMBER() OVER (SELECT 0) as _row_num FROM \"users\") as _t WHERE _row_num BETWEEN 1 AND 10) AS subquery"
+    assert.equal @compile(stmt), "SELECT COUNT(1) as count_id FROM (SELECT _t.* FROM (SELECT ROW_NUMBER() OVER (ORDER BY (SELECT 0)) as _row_num FROM \"users\") as _t WHERE _row_num BETWEEN 1 AND 10) AS subquery"
