@@ -1,6 +1,6 @@
 assert = require('chai').assert
 
-Rel = require '../../src/rel'
+Rel = require '../../lib/rel'
 
 Table = Rel.Table
 As = Rel.Nodes.As

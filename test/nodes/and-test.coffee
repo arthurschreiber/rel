@@ -1,6 +1,6 @@
 assert = require('chai').assert
 
-Rel = require '../../src/rel'
+Rel = require '../../lib/rel'
 
 { And } = Rel.Nodes
 

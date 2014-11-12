@@ -2,7 +2,7 @@ assert = require('chai').assert
 
 FakeEngine = require '../support/fake-engine'
 
-Rel = require '../../src/rel'
+Rel = require '../../lib/rel'
 
 describe 'Rel.Visitors.ToSql', ->
   beforeEach ->

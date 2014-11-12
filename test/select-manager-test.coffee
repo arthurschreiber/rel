@@ -2,11 +2,11 @@ assert = require('chai').assert
 
 FakeEngine = require('./support/fake-engine')
 
-SelectManager = require '../src/select-manager'
-Table = require '../src/table'
-SqlLiteral = require('../src/nodes/sql-literal')
-Rel = require('../src/rel')
-Nodes = require '../src/nodes'
+SelectManager = require '../lib/select-manager'
+Table = require '../lib/table'
+SqlLiteral = require('../lib/nodes/sql-literal')
+Rel = require('../lib/rel')
+Nodes = require '../lib/nodes'
 
 describe 'Querying stuff', ->
   beforeEach ->

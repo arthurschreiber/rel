@@ -53,7 +53,6 @@
     "lib": "lib"
   },
   "scripts": {
-    "prepublish": "coffee --bare -o lib -c src",
     "test": "mocha test/**/*-test.coffee"
   },
   "devDependencies": {

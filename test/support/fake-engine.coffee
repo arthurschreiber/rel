@@ -1,6 +1,6 @@
 require "date-utils"
 
-Rel = require "../../src/rel"
+Rel = require "../../lib/rel"
 
 class FakeEngine
   visitor: ->

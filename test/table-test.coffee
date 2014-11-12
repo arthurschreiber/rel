@@ -2,14 +2,14 @@ assert = require('chai').assert
 
 FakeEngine = require './support/fake-engine'
 
-Table = require '../src/table'
-SelectManager = require '../src/select-manager'
-InsertManager = require '../src/insert-manager'
-UpdateManager = require '../src/update-manager'
-TreeManager = require '../src/tree-manager'
-DeleteManager = require '../src/delete-manager'
-SqlLiteral = require('../src/nodes/sql-literal')
-Nodes = require '../src/nodes'
+Table = require '../lib/table'
+SelectManager = require '../lib/select-manager'
+InsertManager = require '../lib/insert-manager'
+UpdateManager = require '../lib/update-manager'
+TreeManager = require '../lib/tree-manager'
+DeleteManager = require '../lib/delete-manager'
+SqlLiteral = require('../lib/nodes/sql-literal')
+Nodes = require '../lib/nodes'
 
 describe 'Table', ->
   beforeEach ->

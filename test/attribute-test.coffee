@@ -2,7 +2,7 @@ assert = require('chai').assert
 
 FakeEngine = require './support/fake-engine'
 
-Rel = require '../src/rel'
+Rel = require '../lib/rel'
 { Table, Nodes } = Rel
 
 describe 'Attribute', ->
