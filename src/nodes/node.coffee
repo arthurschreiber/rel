@@ -1,6 +1,6 @@
 Nodes = require './index'
 Visitors = require '../visitors'
-Collectors = require '../collectors'
+SQLString = require '../collectors/sql-string'
 
 class Node
   not: ->
@@ -16,7 +16,7 @@ class Node
   toSql: (engine) ->
     throw new Error("Node#toSql: missing engine") unless engine?
 
-    collector = new Collectors.SQLString
+    collector = new SQLString
     engine.visitor().accept @, collector
     collector.value
   

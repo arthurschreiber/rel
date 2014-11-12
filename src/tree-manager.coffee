@@ -2,7 +2,7 @@ u = require 'underscore'
 
 FactoryMethods = require './factory-methods'
 Visitors = require('./visitors')
-Collectors = require './collectors'
+SQLString = require './collectors/sql-string'
 
 class TreeManager
   u.extend(@prototype, FactoryMethods)
@@ -17,7 +17,7 @@ class TreeManager
     new Visitors.Dot().accept @ast
 
   toSql: ->
-    collector = new Collectors.SQLString
+    collector = new SQLString
     @visitor.accept @ast, collector
     collector.value
 
