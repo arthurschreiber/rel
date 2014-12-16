@@ -69,4 +69,4 @@ describe 'Rel.Visitors.MSSQL', ->
     query = @table.column('name').eq(new Rel.Nodes.BindParam())
       .and(@table.column('id').eq(new Rel.Nodes.BindParam()))
 
-    assert.equal @compile(query), '"users"."name" = $1 AND "users"."id" = $2'
+    assert.equal @compile(query), '"users"."name" = @1 AND "users"."id" = @2'
