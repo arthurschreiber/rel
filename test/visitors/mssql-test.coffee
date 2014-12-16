@@ -64,3 +64,9 @@ describe 'Rel.Visitors.MSSQL', ->
     stmt.cores[0].projections.push(new Rel.Nodes.Count('*'))
 
     assert.equal @compile(stmt), "SELECT COUNT(1) as count_id FROM (SELECT _t.* FROM (SELECT ROW_NUMBER() OVER (ORDER BY (SELECT 0)) as _row_num FROM \"users\") as _t WHERE _row_num BETWEEN 1 AND 10) AS subquery"
+
+  it 'generates incremental bind params', ->
+    query = @table.column('name').eq(new Rel.Nodes.BindParam())
+      .and(@table.column('id').eq(new Rel.Nodes.BindParam()))
+
+    assert.equal @compile(query), '"users"."name" = $1 AND "users"."id" = $2'

@@ -17,24 +17,24 @@ describe 'Rel.Collectors.Bind', ->
       @collect(node).value
 
     @astWithBinds = (bv) ->
-      table = new Rel.Table('users', @engine)
-      manager = new Rel.SelectManager(@engine, table)
+      table = new Rel.Table('users')
+      manager = new Rel.SelectManager(table)
       manager.where(table.column('age').eq(bv))
       manager.where(table.column('name').eq(bv))
       manager.ast
 
   it 'leaves binds', ->
-    bv = new Rel.Nodes.BindParam('?')
+    bv = new Rel.Nodes.BindParam()
     list = @compile(bv)
     assert.strictEqual bv, list[0]
 
   it 'adds strings', ->
-    bv = new Rel.Nodes.BindParam('?')
+    bv = new Rel.Nodes.BindParam()
     list = @compile(@astWithBinds(bv))
     assert.isTrue(list.length > 0)
 
   it 'compiles', ->
-    bv = new Rel.Nodes.BindParam('?')
+    bv = new Rel.Nodes.BindParam()
     collector = @collect(@astWithBinds(bv))
 
     sql = collector.compile ["hello", "world"]

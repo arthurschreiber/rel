@@ -27,7 +27,7 @@ describe.skip 'Rel.Collectors.SQLString', ->
       manager.ast
 
   it 'should compile', ->
-    bv = new Rel.Nodes.BindParam('?')
+    bv = new Rel.Nodes.BindParam()
     @collect(@astWithBinds(bv))
 
     sql = @collector.compile(["hello", "world"])

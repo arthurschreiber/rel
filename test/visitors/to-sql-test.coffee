@@ -15,9 +15,15 @@ describe 'Rel.Visitors.ToSql', ->
       @visitor.accept(node, new Rel.Collectors.SQLString).value
 
   it 'works with BindParams', ->
-    node = new Rel.Nodes.BindParam('?')
+    node = new Rel.Nodes.BindParam()
     sql = @compile(node)
     assert.equal(sql, '?')
+
+  it 'does not quote BindParams used as part of a Values', ->
+    bp = new Rel.Nodes.BindParam
+    values = new Rel.Nodes.Values([bp])
+    sql = @compile(values)
+    assert.equal(sql, 'VALUES (?)')
 
   it 'should not quote sql literals', ->
     node = @table.column(Rel.star())
